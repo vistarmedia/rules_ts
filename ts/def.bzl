@@ -64,6 +64,7 @@ def ts_library(name, **kwargs):
     ts_defs = src_name,
     deps = deps,
     visibility = kwargs.get('visibility'),
+    testonly = kwargs.get('testonly', False),
   )
 
 
@@ -109,6 +110,7 @@ def ts_test(name, **kwargs):
     declaration = False,
     srcs        = kwargs.pop('srcs', []),
     deps        = compile_deps,
+    testonly    = True,
     **kwargs)
 
   js_test(
