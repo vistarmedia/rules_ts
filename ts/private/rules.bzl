@@ -192,7 +192,7 @@ attrs = tsc_attrs + {
   '_jsar': jsar_attr,
 }
 
-ts_srcs = rule(
+_ts_srcs = rule(
   _ts_srcs_impl,
   attrs = attrs + {
     'srcs':         attr.label_list(allow_files=ts_src_type),
@@ -200,7 +200,7 @@ ts_srcs = rule(
   }
 )
 
-ts_src = rule(
+_ts_src = rule(
   _ts_src_impl,
   attrs = attrs + {
     'src':          attr.label(allow_files=ts_src_type, single_file=True),
@@ -208,4 +208,21 @@ ts_src = rule(
   }
 )
 
-tsc_config = rule(_tsc_config_impl, attrs = tsc_attrs)
+_tsc_config = rule(_tsc_config_impl, attrs = tsc_attrs)
+
+
+def _check_arguments(impl, name, **kwargs):
+  if kwargs.get('allow_relative'):
+    label = native.package_name() +':'+ name
+    print('WARNING %s: allow_relative is deprecated' % label)
+
+  impl(name=name, **kwargs)
+
+def ts_srcs(**kwargs):
+  _check_arguments(_ts_srcs, **kwargs)
+
+def ts_src(**kwargs):
+  _check_arguments(_ts_src, **kwargs)
+
+def tsc_config(**kwargs):
+  _check_arguments(_tsc_config, **kwargs)
