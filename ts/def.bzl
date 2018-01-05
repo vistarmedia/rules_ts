@@ -53,7 +53,7 @@ exports_files([
   )
 
 
-def ts_library(name, **kwargs):
+def ts_library(name, package=None, **kwargs):
   src_name = name + '.src'
   deps     = kwargs.get('deps', []) + ['@tslib//:lib']
   ts_srcs(name=src_name, **kwargs)
@@ -63,6 +63,7 @@ def ts_library(name, **kwargs):
     srcs = [src_name],
     ts_defs = src_name,
     deps = deps,
+    package = package,
     visibility = kwargs.get('visibility'),
     testonly = kwargs.get('testonly', False),
   )
