@@ -13,8 +13,8 @@ load('@io_bazel_rules_ts//ts/private:rules.bzl',
 def ts_repositories():
   native.new_http_archive(
     name   = 'typescript',
-    url    = 'http://registry.npmjs.org/typescript/-/typescript-2.4.2.tgz',
-    sha256 = 'c39a4ab3fa03297ae4217d846a3f65512f49991526db58c488a39f8db1155937',
+    url    = 'http://registry.npmjs.org/typescript/-/typescript-2.8.1.tgz',
+    sha256 = '9b32bd684e935101f00bea2e290879b2a0600c12d068751b8f9c92daddb42224',
     strip_prefix = 'package',
     build_file_content = """
 load('@bazel_tools//tools/build_defs/pkg:pkg.bzl', 'pkg_tar')
