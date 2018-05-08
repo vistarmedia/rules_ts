@@ -104,6 +104,7 @@ def ts_test(name, **kwargs):
       js_test_args[arg_name] = kwargs.pop(arg_name)
 
   deps = kwargs.pop('deps', [])
+  requires = kwargs.pop('requires', [])
   compile_deps = deps + ['@mocha//:lib']
 
   ts_srcs(
@@ -118,4 +119,5 @@ def ts_test(name, **kwargs):
     name = name,
     srcs = [src_name],
     deps = deps,
+    requires = requires,
     **js_test_args)
