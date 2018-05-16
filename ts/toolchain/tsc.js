@@ -1,4 +1,4 @@
-const ts = require('typescript/typescript')
+const ts = require('typescript')
 
 function logError(error) {
   const {

@@ -11,39 +11,10 @@ load('@io_bazel_rules_ts//ts/private:rules.bzl',
 
 
 def ts_repositories():
-  native.new_http_archive(
-    name   = 'typescript',
-    url    = 'http://registry.npmjs.org/typescript/-/typescript-2.8.1.tgz',
+  npm_install(
+    name = 'typescript',
+    version = '2.8.1',
     sha256 = '9b32bd684e935101f00bea2e290879b2a0600c12d068751b8f9c92daddb42224',
-    strip_prefix = 'package',
-    build_file_content = """
-load('@bazel_tools//tools/build_defs/pkg:pkg.bzl', 'pkg_tar')
-
-load('@io_bazel_rules_js//js/private:rules.bzl', 'jsar')
-load('@io_bazel_rules_js//js:def.bzl', 'js_binary')
-
-
-# Because we're in an external (`typescript`), the `js_library` is going to want
-# to resolve us to `external/typescript`. Instead, build the tar by hand, and
-# bless it using the `jsar` backdoor.
-pkg_tar(
-  name        = 'tarball',
-  extension   = 'tar.gz',
-  srcs        = ['package.json'] + glob(['lib/*']),
-  package_dir = 'typescript',
-)
-
-jsar(
-  name = 'lib',
-  tar  = ':tarball',
-  visibility = ['//visibility:public'],
-)
-
-exports_files([
-  'lib/tsc.js',
-  'lib/lib.d.ts'
-], visibility=['//visibility:public'])
-""",
   )
 
   npm_install(

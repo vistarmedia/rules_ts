@@ -59,7 +59,7 @@ def _plugin_path(plugin):
 def _compile(ctx, srcs):
   bin_dir = ctx.configuration.bin_dir.path
   ts_defs = _transitive_ts_defs(ctx)
-  inputs  = srcs + list(ts_defs) + [ctx.file._tsc_lib]
+  inputs  = srcs + list(ts_defs)
   outputs = []
   cmds    = ['set -eu -o pipefail']
 
@@ -183,11 +183,6 @@ attrs = tsc_attrs + {
     default     = Label('@io_bazel_rules_ts//ts/toolchain:tsc'),
     executable = True,
     cfg        = 'host'),
-
-  '_tsc_lib': attr.label(
-    default     = Label('@typescript//:lib/lib.d.ts'),
-    allow_files = True,
-    single_file = True),
 
   '_jsar': jsar_attr,
 }
