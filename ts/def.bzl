@@ -66,7 +66,6 @@ def ts_test(name, **kwargs):
     'reporter',
     'shared_count',
     'size',
-    'timeout',
     'visibility',
   ]
   js_test_args = {}
