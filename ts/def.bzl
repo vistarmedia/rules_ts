@@ -13,14 +13,14 @@ load('@io_bazel_rules_ts//ts/private:rules.bzl',
 def ts_repositories():
   npm_install(
     name = 'typescript',
-    version = '2.8.1',
-    sha256 = '9b32bd684e935101f00bea2e290879b2a0600c12d068751b8f9c92daddb42224',
+    version = '3.0.1',
+    sha256 = '416f4681fe27593835c3d638a805534fdb9a0de9b534bc1eda413f6311016798',
   )
 
   npm_install(
     name = 'tslib',
-    version = '1.7.1',
-    sha256 = 'fd55589e34e9fcf38e4ec84952e3e6b6c39b2f069f8a4978893676048139ea1d',
+    version = '1.9.3',
+    sha256 = '30ee942205f3981657796a5e4ef12bf1229b2eeedfa7df33e03cd7203049b62f',
   )
 
 
