@@ -1,8 +1,9 @@
 load('@io_bazel_rules_js//js/private:rules.bzl',
-  'js_dep_attr',
+  'js_lib_attr',
   'jsar_attr',
   'node_attr',
-  'transitive_jsars')
+  'compile_deps',
+  'runtime_deps')
 
 load('//ts/private:flags.bzl', 'tsc_attrs', 'tsc_flags')
 
@@ -11,11 +12,11 @@ ts_src_type = FileType(['.ts', '.tsx'])
 ts_def_type = FileType(['.d.ts'])
 
 def _extract_dependencies(ctx):
-  cmds   = []
-  deps   = list(transitive_jsars(
-    ctx.attr.deps + \
-    ctx.attr.transform_before + \
-    ctx.attr.transform_after))
+  cmds = []
+  deps = list(
+    compile_deps(ctx.attr.deps) + \
+    runtime_deps(ctx.attr.transform_before + ctx.attr.transform_after)
+  )
 
   # First, make sure all dependent jsars are extracted into the working
   # directory. If `allow_relative` is set, they will be expanded into the root
@@ -167,10 +168,10 @@ def _tsc_config_impl(ctx):
 
 attrs = tsc_attrs + {
   'ts_defs': attr.label_list(allow_files=ts_def_type),
-  'deps':    js_dep_attr,
+  'deps':    js_lib_attr,
 
-  'transform_before': js_dep_attr,
-  'transform_after':  js_dep_attr,
+  'transform_before': js_lib_attr,
+  'transform_after':  js_lib_attr,
 
   # Allows importing across module boundaries using relative imports
   'allow_relative': attr.bool(default=False),
