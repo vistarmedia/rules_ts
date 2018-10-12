@@ -23,6 +23,8 @@ def ts_repositories():
     sha256 = '30ee942205f3981657796a5e4ef12bf1229b2eeedfa7df33e03cd7203049b62f',
   )
 
+  # TODO: Currently relying on the host workspace to define @protobufjs
+
 
 def ts_library(name, package=None, **kwargs):
   src_name = name + '.src'

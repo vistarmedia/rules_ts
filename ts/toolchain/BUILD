@@ -5,7 +5,7 @@ js_binary(
     src = "tsc.js",
     visibility = ["//visibility:public"],
     deps = [
-        "@tslib//:lib",
-        "@typescript//:lib",
+        "//ts/toolchain/compiler",
+        "@io_bazel_rules_js//js/tools/persistent_worker",
     ],
 )
