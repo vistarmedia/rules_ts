@@ -22,18 +22,27 @@ class CompilerHost {
   }
 
   getSourceFile(name, langVersion, onError, shouldCreateNewSourceFile) {
-    const source = this._resolver.readFile(name);
+    // The incoming source files will not be fully-qualified. Treat them like
+    // they're on the root of the FS. Pass the original to `createSourceFile`
+    // for consistent error reporting
+    let fsFile = name;
+    if(fsFile[0] !== '/') {
+      fsFile = '/' + fsFile;
+    }
+
+    const source = this._resolver.readFile(fsFile);
     if(source !== undefined) {
       return ts.createSourceFile(name, source, langVersion);
     }
   }
 
   getDefaultLibFileName(options) {
-    return this._delegate.getDefaultLibFileName(options);
+    return path.join(this.getDefaultLibLocation(), 'lib.d.ts');
   }
 
   getDefaultLibLocation() {
-    return this._delegate.getDefaultLibLocation();
+    return path.join(this.getCurrentDirectory(), 'node_modules', 'typescript',
+      'lib');
   }
 
   writeFile(name, data, writeBOM, onError, sourceFiles) {
@@ -41,7 +50,7 @@ class CompilerHost {
   }
 
   getCurrentDirectory() {
-    return process.cwd();
+    return "/";
   }
 
   getCanonicalFileName(path) {

@@ -35,7 +35,7 @@ def _compile(ctx, srcs):
   lib = list(
     compile_deps(ctx.attr.deps) + \
     runtime_deps(ctx.attr.transform_before + ctx.attr.transform_after) + \
-    runtime_deps([ctx.attr._tslib])
+    runtime_deps([ctx.attr._tslib, ctx.attr._typescript])
   )
 
   inputs += lib
@@ -157,6 +157,7 @@ attrs = tsc_attrs + {
     cfg        = 'host'),
 
   '_tslib': attr.label(default = Label('@tslib//:lib')),
+  '_typescript': attr.label(default = Label('@typescript//:lib')),
 }
 
 _ts_srcs = rule(

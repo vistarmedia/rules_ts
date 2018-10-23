@@ -1,14 +1,13 @@
-// Resolvers tsc's interface to the filesystem. The strategy below is to overlay
-// some jsar files on top of the real filesystem to convince tsc that we have a
-// `node_modules` directory with all of this target's dependencies.
+// Resolvers are tsc's interface to the filesystem. The strategy below is to
+// create an in-memory filesystem from the source files and its dependencies
+// being compiled. Source files will be laid out on the root, while dependencies
+// will live in `node_modules`.
 //
-// Admittedly, the multiple `Resolver` abstractions below may seem
-// over-engineered as each is used only once in practice. However, this allows
-// for wildly different combinations to be composed quickly. Given the
-// complexity of `tsc` and its resolution algorithm, this is vital for making
-// radical but isolated changes to how files reach the compiler.
+//    /my/source/File1.ts
+//    /my/source/File2.ts
+//    /node_modules/lodash/package.json
+//    /node_modules/lodash/index.js
 const path = require('path');
-const ts   = require('typescript');
 const util = require('util');
 const fs   = require('fs');
 
@@ -111,6 +110,9 @@ class LibResolver {
   }
 
   readFile(fileName) {
+    if(fileName[0] !== '/') {
+      throw Error('non-absolute file name', fileName);
+    }
     const buf = this._files[fileName];
     if(buf) {
       return buf.toString('utf8');
@@ -119,7 +121,7 @@ class LibResolver {
 
   directoryExists(dirName) {
     if(dirName[0] !== '/') {
-      throw Error('non-absolute directory name' + fileName);
+      throw Error('non-absolute directory name ' + dirName);
     }
     if(dirName !== "/" && dirName[dirName.length-1] === '/') {
       console.error('trailing slash of directory name:' + dirName);
@@ -202,35 +204,6 @@ class StripPrefixResolver {
 
 
 /**
- * Resolve files on the filesystem. Uses Typescript's implementations which are
- * both synchronous (which they need to be), and appear to have some caching
- * built in. At least while the compiler is one-shot, this doesn't seem to be an
- * issue.
- *
- * Note, that this should not be needed for sandboxed workers, however, as
- * things stand, our Typescript package does not include the standard library
- * definition as a `jsar`, and it must fall back to disk. This should be able to
- * be removed at that point.
- */
-class FSResolver {
-  fileExists(fileName) {
-    return ts.sys.fileExists(fileName);
-  }
-
-  readFile(fileName) {
-    return ts.sys.readFile(fileName);
-  }
-
-  directoryExists(dirName) {
-    return ts.sys.directoryExists(dirName);
-  }
-
-  getDirectories(dirName) {
-    return ts.sys.getDirectories(dirName);
-  }
-}
-
-/**
  * Overlays multiple resolvers on top of each other. Their precedence is
  * determined by the order they are given to the constructor. If calling, say,
  * `fileExists`, this will check the first `Resolver` given to it, then the
@@ -309,6 +282,14 @@ async function libResolverFromJsars(names) {
   return new LibResolver(fileMap);
 }
 
+async function libResolverFromFiles(names) {
+  let fileMap = {}
+  await Promise.all(names.map(async (name) => {
+    fileMap["/" + name] = await readFile(name);
+  }));
+  return new LibResolver(fileMap);
+}
+
 /**
  * Given an array of `jsar` file names, create a `Resolver` that should be able
  * to find all files `tsc` is looking for in a valid module.
@@ -316,25 +297,20 @@ async function libResolverFromJsars(names) {
  * This will take all given `jsar` files, and expose them like they were all in
  * a `node_modules` directory in the current directory on top of the system's
  * actual file-structure.
- *
- * As noted in the documentation for `FSResolver`, we should not need to fall
- * back to the filesystem at all, but as it stands, this is needed to resolved
- * the type definitions for the standard library. This not only prevents
- * sandboxing, but greatly slows down the module resolution process, as queries
- * can not longer be answered entirely from in-memory structures.
  */
-async function resolverFromJsars(names) {
-  const cwd        = process.cwd();
-  const searchPath = path.join(cwd, 'node_modules');
+async function newResolver(jsars, files) {
 
-  const libResolver    = await libResolverFromJsars(names);
-  const prefixResolver = new StripPrefixResolver(searchPath, libResolver);
-  const fsResolver     = new FSResolver();
+  // The source files live at the root of the filesystem
+  const srcResolver = await libResolverFromFiles(files);
 
-  return new CompositeResolver(prefixResolver, fsResolver);
+  // Libraries live at `/node_modules`.
+  const libResolver = new StripPrefixResolver("/node_modules",
+    await libResolverFromJsars(jsars));
+
+  return new CompositeResolver(libResolver, srcResolver);
 }
 
 module.exports = {
   __test__: {LibResolver, StripPrefixResolver},
-  resolverFromJsars,
+  newResolver,
 };

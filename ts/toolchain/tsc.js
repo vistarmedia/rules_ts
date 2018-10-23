@@ -6,6 +6,6 @@ const {compile} = require('./compiler');
 work(async (arg) => await compile(JSON.parse(arg)))
   .then(() => process.exit(0))
   .catch((err) => {
-    console.error(err);
+    console.error(err.stack);
     process.exit(1);
   });

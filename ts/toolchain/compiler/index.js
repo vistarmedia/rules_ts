@@ -1,9 +1,9 @@
 const ts   = require('typescript');
 const util = require('util');
 
-const {CompilerHost}      = require('./compiler_host');
-const {hostRequire}       = require('./compiler_host');
-const {resolverFromJsars} = require('./resolver');
+const {CompilerHost} = require('./compiler_host');
+const {hostRequire}  = require('./compiler_host');
+const {newResolver}  = require('./resolver');
 
 
 function logError(error) {
@@ -46,7 +46,7 @@ async function compile(opts) {
     return exitErrors(cmd.errors)
   }
 
-  const resolver = await resolverFromJsars(opts.lib);
+  const resolver = await newResolver(opts.lib, cmd.fileNames);
   const compiler = new CompilerHost(cmd.options, resolver);
 
   const program = ts.createProgram(cmd.fileNames, cmd.options, compiler);
