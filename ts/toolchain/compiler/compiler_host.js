@@ -1,6 +1,10 @@
 const ts = require('typescript');
 const path = require('path');
+const crypto = require('crypto');
 
+const {LRU} = require('./lru');
+
+const srcCache = new LRU(1500);
 
 /**
  * A `CompilerHost` is how `tsc` interacts with the host filesystem. It is
@@ -31,8 +35,19 @@ class CompilerHost {
     }
 
     const source = this._resolver.readFile(fsFile);
+    const hash = crypto.createHash('sha1')
+      .update(name)
+      .update(source)
+      .update(langVersion ? langVersion.toString() : '')
+      .digest('hex');
+    if(srcCache.hasKey(hash)) {
+      return srcCache.get(hash);
+    }
+
     if(source !== undefined) {
-      return ts.createSourceFile(name, source, langVersion);
+      const sf = ts.createSourceFile(name, source, langVersion);
+      srcCache.set(hash, sf);
+      return sf;
     }
   }
 

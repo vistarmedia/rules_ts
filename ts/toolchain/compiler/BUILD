@@ -5,6 +5,7 @@ js_library(
     srcs = [
         "compiler_host.js",
         "index.js",
+        "lru.js",
         "resolver.js",
     ],
     visibility = ["//visibility:public"],
@@ -18,7 +19,10 @@ js_library(
 js_test(
     name = "test",
     size = "small",
-    srcs = ["resolver_spec.js"],
+    srcs = [
+        "lru_spec.js",
+        "resolver_spec.js",
+    ],
     deps = [
         ":lib",
         "@chai//:lib",

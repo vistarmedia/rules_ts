@@ -13,6 +13,8 @@ const fs   = require('fs');
 
 const {unbundle} = require('io_bazel_rules_js/js/tools/jsar/jsar');
 
+const {LRU} = require('./lru');
+
 const readFile = util.promisify(fs.readFile);
 
 /**
@@ -72,6 +74,7 @@ class Directories {
     return this._dirs[dirName];
   }
 }
+
 
 /**
  * Resolver which can take a mapping of source file names to their contents.
@@ -265,13 +268,24 @@ class CompositeResolver {
 
 /**
  * Given an array of `jsar` file names, read each and build a mapping of file
- * names to their `jsar` contents as a node `Buffer`. If there are somehow
- * duplicate entries for a file name, the last one read will bildly clobber the
- * existing value.
+ * names to their `jsar` contents as a node `Buffer`.  If the checksum of any
+ * `jsar` has been seen recently, it will use the value found in the cache.
  */
-async function libResolverFromJsars(names) {
+const libCache = new LRU(500);
+async function libResolverFromJsars(names, checksums) {
   const bundles = names.map(async (name) => {
-    return await unbundle(await readFile(name));
+    const checksum = checksums[name];
+    if(checksum !== undefined) {
+      if(libCache.hasKey(checksum)) {
+        return libCache.get(checksum);
+      }
+    }
+
+    const bundle = await unbundle(await readFile(name));
+    if(checksum !== undefined) {
+      libCache.set(checksum, bundle);
+    }
+    return bundle;
   });
 
   let fileMap = {};
@@ -298,14 +312,14 @@ async function libResolverFromFiles(names) {
  * a `node_modules` directory in the current directory on top of the system's
  * actual file-structure.
  */
-async function newResolver(jsars, files) {
+async function newResolver(jsars, files, checksums) {
 
   // The source files live at the root of the filesystem
   const srcResolver = await libResolverFromFiles(files);
 
   // Libraries live at `/node_modules`.
   const libResolver = new StripPrefixResolver("/node_modules",
-    await libResolverFromJsars(jsars));
+    await libResolverFromJsars(jsars, checksums));
 
   return new CompositeResolver(libResolver, srcResolver);
 }

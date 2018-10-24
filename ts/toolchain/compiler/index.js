@@ -39,14 +39,19 @@ function exitErrors(errors) {
 }
 
 
-async function compile(opts) {
+async function compile(opts, inputs) {
+  const checksums = inputs.reduce((acc, input) => {
+    acc[input.path] = input.digest.toHex();
+    return acc;
+  }, {});
+
   const cmd = ts.parseCommandLine(opts.args)
 
   if(cmd.errors.length > 0) {
     return exitErrors(cmd.errors)
   }
 
-  const resolver = await newResolver(opts.lib, cmd.fileNames);
+  const resolver = await newResolver(opts.lib, cmd.fileNames, checksums);
   const compiler = new CompilerHost(cmd.options, resolver);
 
   const program = ts.createProgram(cmd.fileNames, cmd.options, compiler);
@@ -56,7 +61,6 @@ async function compile(opts) {
     after: opts.transformers.after.map((t) =>
       hostRequire(compiler, cmd.options, t).default(program)),
   };
-
 
   const {emitSkipped, diagnostics} = program.emit(
     undefined, undefined, undefined, false, transformers);
