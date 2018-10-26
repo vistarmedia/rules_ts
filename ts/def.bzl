@@ -79,12 +79,17 @@ def ts_test(name, **kwargs):
   requires = kwargs.pop('requires', [])
   compile_deps = deps + ['@mocha//:lib']
 
+  ignored_strict_deps = kwargs.get('ignored_strict_deps', [])
+  ignored_strict_deps.append('@mocha//:lib')
+
   ts_srcs(
     name        = src_name,
     declaration = False,
     srcs        = kwargs.pop('srcs', []),
     deps        = compile_deps,
     testonly    = True,
+
+    ignored_strict_deps = ignored_strict_deps,
     **kwargs)
 
   js_test(

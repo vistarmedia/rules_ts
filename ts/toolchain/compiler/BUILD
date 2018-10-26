@@ -7,6 +7,7 @@ js_library(
         "index.js",
         "lru.js",
         "resolver.js",
+        "strict_deps.js",
     ],
     visibility = ["//visibility:public"],
     deps = [

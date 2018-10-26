@@ -92,9 +92,19 @@ def _compile(ctx, srcs):
   tsc_args += [ts_def.path for ts_def in ts_defs]
   tsc_args += [src.path for src in srcs]
 
+  # Provides the compiler a set of strict (non-transitive) dependencies for this
+  # target. Maps each label to its jsar
+  deps = [[str(dep.label), dep.cjsar.path] for dep in ctx.attr.deps]
+
   tsc_opts = struct(
-    args         = tsc_args,
-    lib          = [l.path for l in lib],
+    label = str(ctx.label),
+    args  = tsc_args,
+    lib   = [l.path for l in lib],
+    deps  = deps,
+
+    strict_deps         = ctx.attr.strict_deps,
+    ignored_strict_deps = [str(d.label) for d in ctx.attr.ignored_strict_deps],
+
     transformers = struct(
       before = [_plugin_path(t) for t in ctx.attr.transform_before],
       after  = [_plugin_path(t) for t in ctx.attr.transform_after],
@@ -148,6 +158,12 @@ attrs = tsc_attrs + {
   'allow_relative': attr.bool(default=False),
 
   'tsc_config': attr.label(mandatory=False, providers=['tsc_flags']),
+
+  'strict_deps': attr.bool(default=False, doc='Enable strict deps -- unsued ' +\
+                  'dependencies and transitive imports will fail the target.'),
+
+  'ignored_strict_deps': attr.label_list(default=[], doc='Dependencies ' +\
+                  'which should not be checked for strictness'),
 
   '_node': node_attr,
 

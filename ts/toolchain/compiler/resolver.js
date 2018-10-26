@@ -273,18 +273,23 @@ class CompositeResolver {
  */
 const libCache = new LRU(500);
 async function libResolverFromJsars(names, checksums) {
+  const jsarByFile = {};
   const bundles = names.map(async (name) => {
+    let bundle;
     const checksum = checksums[name];
-    if(checksum !== undefined) {
-      if(libCache.hasKey(checksum)) {
-        return libCache.get(checksum);
+    if(checksum !== undefined && libCache.hasKey(checksum)) {
+      bundle = libCache.get(checksum);
+    } else {
+      bundle = await unbundle(await readFile(name));
+      if(checksum !== undefined) {
+        libCache.set(checksum, bundle);
       }
     }
 
-    const bundle = await unbundle(await readFile(name));
-    if(checksum !== undefined) {
-      libCache.set(checksum, bundle);
+    for(const file of Object.keys(bundle)) {
+      jsarByFile[file] = name;
     }
+
     return bundle;
   });
 
@@ -292,8 +297,9 @@ async function libResolverFromJsars(names, checksums) {
   for(let bundle of await Promise.all(bundles)) {
     Object.assign(fileMap, bundle);
   }
+  const resolver = new LibResolver(fileMap);
 
-  return new LibResolver(fileMap);
+  return {resolver, jsarByFile};
 }
 
 async function libResolverFromFiles(names) {
@@ -313,15 +319,13 @@ async function libResolverFromFiles(names) {
  * actual file-structure.
  */
 async function newResolver(jsars, files, checksums) {
-
-  // The source files live at the root of the filesystem
   const srcResolver = await libResolverFromFiles(files);
+  const {resolver, jsarByFile} = await libResolverFromJsars(jsars, checksums);
+  const libResolver = new StripPrefixResolver("/node_modules", resolver);
 
-  // Libraries live at `/node_modules`.
-  const libResolver = new StripPrefixResolver("/node_modules",
-    await libResolverFromJsars(jsars, checksums));
-
-  return new CompositeResolver(libResolver, srcResolver);
+  const workspace = new CompositeResolver(libResolver, srcResolver);
+  workspace.jsarByFile = jsarByFile;
+  return workspace;
 }
 
 module.exports = {
