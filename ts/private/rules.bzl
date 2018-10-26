@@ -180,8 +180,10 @@ _tsc_config = rule(_tsc_config_impl, attrs = tsc_attrs)
 
 
 def _check_arguments(impl, name, **kwargs):
+  label = native.package_name() +':'+ name
+  if not kwargs.get("tsc_config"):
+    print('WARNING %s: Missing ts_config in target' % label)
   if kwargs.get('allow_relative'):
-    label = native.package_name() +':'+ name
     print('WARNING %s: allow_relative is deprecated' % label)
 
   impl(name=name, **kwargs)
