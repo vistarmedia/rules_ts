@@ -79,7 +79,7 @@ def ts_test(name, **kwargs):
   requires = kwargs.pop('requires', [])
   compile_deps = deps + ['@mocha//:lib']
 
-  ignored_strict_deps = kwargs.get('ignored_strict_deps', [])
+  ignored_strict_deps = kwargs.pop('ignored_strict_deps', [])
   ignored_strict_deps.append('@mocha//:lib')
 
   ts_srcs(

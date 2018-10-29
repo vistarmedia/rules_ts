@@ -5,6 +5,8 @@ function strictDeps(program) {
   const noteImport = (src, impt) => {
     if(imports[src] === undefined) {
       imports[src] = [];
+    } else if(imports[src].indexOf(impt) >= 0) {
+      return;
     }
     imports[src].push(impt);
   }
