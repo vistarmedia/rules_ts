@@ -1,4 +1,4 @@
-load("//ts:def.bzl", "ts_library", "ts_binary")
+load("//ts:def.bzl", "ts_binary", "ts_library")
 
 ts_library(
     name = "lib",
