@@ -26,7 +26,7 @@ def ts_repositories():
   # TODO: Currently relying on the host workspace to define @protobufjs
 
 
-def ts_library(name, package=None, **kwargs):
+def ts_library(name, package=None, data=[], **kwargs):
   src_name = name + '.src'
   deps     = kwargs.get('deps', []) + ['@tslib//:lib']
   ts_srcs(name=src_name, **kwargs)
@@ -37,12 +37,13 @@ def ts_library(name, package=None, **kwargs):
     ts_defs = src_name,
     deps = deps,
     package = package,
+    data = data,
     visibility = kwargs.get('visibility'),
     testonly = kwargs.get('testonly', False),
   )
 
 
-def ts_binary(name, **kwargs):
+def ts_binary(name, data=[], **kwargs):
   src_name = name + '.src'
   deps     = kwargs.get('deps', []) + ['@tslib//:lib']
   ts_src(name=src_name, **kwargs)
@@ -51,6 +52,7 @@ def ts_binary(name, **kwargs):
     name = name,
     src  = src_name,
     deps = deps,
+    data = data,
   )
 
 
