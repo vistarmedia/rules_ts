@@ -1,4 +1,4 @@
-load("@io_bazel_rules_js//js:def.bzl", "js_binary", "js_library", "js_test")
+load("@io_bazel_rules_js//js:def.bzl", "js_library", "js_test")
 
 js_library(
     name = "compiler",
