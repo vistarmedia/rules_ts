@@ -4,8 +4,7 @@ const {compile} = require('./compiler');
 
 
 work(async (arg, inputs) => await compile(JSON.parse(arg), inputs))
-  .then(() => process.exit(0))
-  .catch((err) => {
-    console.error(err.stack);
-    process.exit(1);
-  });
+.catch((err) => {
+  console.error(err.stack);
+  process.exit(1);
+});

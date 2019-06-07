@@ -21,9 +21,9 @@ gazelle_dependencies()
 
 http_archive(
   name = 'io_bazel_rules_js',
-  url = 'https://github.com/vistarmedia/rules_js/archive/44d0662203ef3d0dbdce851f45cee4fbe9f07f9e.tar.gz',
-  strip_prefix = 'rules_js-44d0662203ef3d0dbdce851f45cee4fbe9f07f9e',
-  sha256 = '4aeaaf65b8242cc3467d27e512de4fbc5b1e52f6a94df0e798f36ac7fca44877',
+  url = 'https://github.com/vistarmedia/rules_js/archive/445d45e7e1cc43805998923dbb4d39ab1dcf4137.zip',
+  strip_prefix = 'rules_js-445d45e7e1cc43805998923dbb4d39ab1dcf4137',
+  sha256 = 'f115afe5035199d6896e1c9ae739a5de29930d225416f03d28cc54d50647fac4',
 )
 load('@io_bazel_rules_js//js:def.bzl', 'js_repositories', 'chai_repositories')
 js_repositories()

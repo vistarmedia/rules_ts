@@ -10,11 +10,19 @@ load('@io_bazel_rules_ts//ts/private:rules.bzl',
   'tsc_config')
 
 
-def ts_repositories():
+def ts_repositories(version='3.4.5'):
+  ts_versions = {
+    '3.4.5': '3c107fa7d3e48a750f12f503a4cd6b312ef0b03b905c5991831167d27a81a8e7',
+    '3.5.1': 'ea87090c959a068a74a45337a9374d89c1b539b0044c3d998a7ec82afc8cdbe6',
+  }
+  ts_sha = ts_versions.get(version)
+  if not ts_sha:
+    fail('Invalid TS Version: %s' % version)
+
   npm_install(
     name = 'typescript',
-    version = '3.0.1',
-    sha256 = '416f4681fe27593835c3d638a805534fdb9a0de9b534bc1eda413f6311016798',
+    version = version,
+    sha256 = ts_sha,
   )
 
   npm_install(

@@ -116,7 +116,7 @@ class CompilerHost {
  * Only `exports` is exposed. Code using `module.exports` will likely crash.
  */
 function hostRequire(host, options, module) {
-  const fileName = ts.resolveJavaScriptModule(module, process.cwd(), host);
+  const fileName = ts.resolveJSModule(module, '/', host)
   const src = host.readFile(fileName);
 
   const requireFun = (name) => {
