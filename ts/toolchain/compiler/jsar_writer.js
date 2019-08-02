@@ -1,7 +1,7 @@
 const fs          = require('fs');
 const {promisify} = require('util');
 
-const {bundle} = require('io_bazel_rules_js/js/tools/jsar/jsar');
+const {bundle} = require('com_vistarmedia_rules_js/js/tools/jsar/jsar');
 
 const {CompilerHost} = require('./compiler_host');
 

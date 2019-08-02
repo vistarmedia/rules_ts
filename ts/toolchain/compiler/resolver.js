@@ -12,7 +12,7 @@ const util = require('util');
 const fs   = require('fs');
 
 const ts         = require('typescript');
-const {unbundle} = require('io_bazel_rules_js/js/tools/jsar/jsar');
+const {unbundle} = require('com_vistarmedia_rules_js/js/tools/jsar/jsar');
 
 const {LRU} = require('./lru');
 

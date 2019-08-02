@@ -1,4 +1,4 @@
-load('@io_bazel_rules_js//js/private:rules.bzl',
+load('@com_vistarmedia_rules_js//js/private:rules.bzl',
   'js_lib_attr',
   'node_attr',
   'compile_deps',
@@ -7,8 +7,8 @@ load('@io_bazel_rules_js//js/private:rules.bzl',
 load('//ts/private:flags.bzl', 'tsc_attrs', 'tsc_flags')
 
 
-ts_src_type = FileType(['.ts', '.tsx'])
-ts_def_type = FileType(['.d.ts'])
+ts_src_type = ['.ts', '.tsx']
+ts_def_type = ['.d.ts']
 
 def _transitive_ts_defs(ctx):
   ts_defs = depset()

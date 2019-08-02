@@ -1,10 +1,10 @@
-load('@io_bazel_rules_js//js:def.bzl',
+load('@com_vistarmedia_rules_js//js:def.bzl',
   'js_binary',
   'js_library',
   'js_test',
   'npm_install')
 
-load('@io_bazel_rules_js//js/private:rules.bzl',
+load('@com_vistarmedia_rules_js//js/private:rules.bzl',
   'compile_deps',
   'js_lib_attr',
   'runtime_deps')
@@ -12,8 +12,9 @@ load('@io_bazel_rules_js//js/private:rules.bzl',
 load('@io_bazel_rules_ts//ts/private:rules.bzl',
   'ts_src',
   'ts_srcs',
-  'tsc_config')
+  _tsc_config = 'tsc_config')
 
+tsc_config = _tsc_config
 
 def ts_repositories(version='3.4.5'):
   ts_versions = {

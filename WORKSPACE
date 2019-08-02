@@ -1,3 +1,5 @@
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
 workspace(name='io_bazel_rules_ts')
 
 http_archive(
@@ -19,13 +21,18 @@ go_rules_dependencies()
 go_register_toolchains()
 gazelle_dependencies()
 
+# TODO, update this hash
 http_archive(
-  name = 'io_bazel_rules_js',
+  name = 'com_vistarmedia_rules_js',
   url = 'https://github.com/vistarmedia/rules_js/archive/445d45e7e1cc43805998923dbb4d39ab1dcf4137.zip',
   strip_prefix = 'rules_js-445d45e7e1cc43805998923dbb4d39ab1dcf4137',
   sha256 = 'f115afe5035199d6896e1c9ae739a5de29930d225416f03d28cc54d50647fac4',
 )
-load('@io_bazel_rules_js//js:def.bzl', 'js_repositories', 'chai_repositories')
+load(
+  '@com_vistarmedia_rules_js//js:def.bzl',
+  'js_repositories',
+  'chai_repositories',
+)
 js_repositories()
 chai_repositories()
 

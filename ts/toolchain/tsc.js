@@ -1,4 +1,4 @@
-const {work} = require('io_bazel_rules_js/js/tools/persistent_worker');
+const {work} = require('com_vistarmedia_rules_js/js/tools/persistent_worker');
 
 const {compile} = require('./compiler');
 

@@ -1,4 +1,4 @@
-load("@io_bazel_rules_js//js:def.bzl", "js_library", "js_test")
+load("@com_vistarmedia_rules_js//js:def.bzl", "js_library", "js_test")
 
 js_library(
     name = "compiler",
@@ -12,7 +12,7 @@ js_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        "@io_bazel_rules_js//js/tools/jsar",
+        "@com_vistarmedia_rules_js//js/tools/jsar",
         "@node//:lib",
         "@typescript//:lib",
     ],

@@ -1,4 +1,4 @@
-load("@io_bazel_rules_js//js:def.bzl", "js_binary")
+load("@com_vistarmedia_rules_js//js:def.bzl", "js_binary")
 
 js_binary(
     name = "tsc",
@@ -6,6 +6,6 @@ js_binary(
     visibility = ["//visibility:public"],
     deps = [
         "//ts/toolchain/compiler",
-        "@io_bazel_rules_js//js/tools/persistent_worker",
+        "@com_vistarmedia_rules_js//js/tools/persistent_worker",
     ],
 )
