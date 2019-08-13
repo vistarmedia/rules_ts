@@ -78,7 +78,31 @@ function checkStrictImports(label, imports, jsarByFile, depByJsar, ignored) {
   return errors;
 }
 
-async function compile(opts, inputs) {
+// Generate a performance log if the total time is greater than the given
+// `perfMaxMs`. Otherwise, return an empty string
+function perfLog(label, perfMaxMs) {
+  let totalTimeMs = 0;
+  let output = '';
+
+  ts.performance.forEachMeasure((key, measure) => {
+    totalTimeMs += measure;
+    output += `[PERF ${label}] ${key}: ${measure}ms\n`;
+  });
+
+  output += `[PERF ${label}] TOTAL ${totalTimeMs}ms\n`;
+  ts.performance.disable();
+
+  if(totalTimeMs > perfMaxMs) {
+    return output;
+  }
+  return '';
+}
+
+async function compile(opts, inputs, perfMaxMs=0) {
+  if(perfMaxMs) {
+    ts.performance.enable();
+  }
+
   const checksums = inputs.reduce((acc, input) => {
     acc[input.path] = input.digest.toHex();
     return acc;
@@ -132,7 +156,8 @@ async function compile(opts, inputs) {
     }
   }
 
-  return {exitCode: 0, output: ''};
+  const output = perfMaxMs ? perfLog(opts.label, perfMaxMs) : '';
+  return {exitCode: 0, output: output};
 }
 
 module.exports = {

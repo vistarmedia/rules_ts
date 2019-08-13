@@ -11,6 +11,7 @@ const path = require('path');
 const util = require('util');
 const fs   = require('fs');
 
+const ts         = require('typescript');
 const {unbundle} = require('io_bazel_rules_js/js/tools/jsar/jsar');
 
 const {LRU} = require('./lru');
@@ -319,12 +320,15 @@ async function libResolverFromFiles(names) {
  * actual file-structure.
  */
 async function newResolver(jsars, files, checksums) {
+  ts.performance.mark("newResolverStart");
   const srcResolver = await libResolverFromFiles(files);
   const {resolver, jsarByFile} = await libResolverFromJsars(jsars, checksums);
   const libResolver = new StripPrefixResolver("/node_modules", resolver);
 
   const workspace = new CompositeResolver(libResolver, srcResolver);
   workspace.jsarByFile = jsarByFile;
+
+  ts.performance.measure("NewResolver", "newResolverStart");
   return workspace;
 }
 

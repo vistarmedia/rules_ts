@@ -34,12 +34,15 @@ class CompilerHost {
       fsFile = '/' + fsFile;
     }
 
+    ts.performance.mark("hashStart");
     const source = this._resolver.readFile(fsFile);
     const hash = crypto.createHash('sha1')
       .update(name)
       .update(source)
       .update(langVersion ? langVersion.toString() : '')
       .digest('hex');
+    ts.performance.measure("Hash", "hashStart");
+
     if(srcCache.hasKey(hash)) {
       return srcCache.get(hash);
     }
@@ -116,6 +119,7 @@ class CompilerHost {
  * Only `exports` is exposed. Code using `module.exports` will likely crash.
  */
 function hostRequire(host, options, module) {
+  ts.performance.mark("hostRequireStart");
   const fileName = ts.resolveJSModule(module, '/', host)
   const src = host.readFile(fileName);
 
@@ -133,6 +137,8 @@ function hostRequire(host, options, module) {
     requireFun,
     capturedExports,
     path.dirname(fileName));
+  ts.performance.measure("HostRequire", "hostRequireStart");
+
   return capturedExports;
 }
 
