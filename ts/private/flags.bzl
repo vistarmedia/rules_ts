@@ -147,7 +147,8 @@ _tsc_flags = {
     # 'es2015.generator' 'es2015.iterable' 'es2015.promise' 'es2015.proxy'
     # 'es2015.reflect' 'es2015.symbol' 'es2015.symbol.wellknown'
     # 'es2016.array.include' 'es2017.object' 'es2017.sharedmemory'
-    # 'es2017.string'
+    # 'es2017.string' 'es2019.array' 'es2019.object' 'es2019.string'
+    # 'es2020.string' 'esnext.asynciterable'
     "lib": {
         "type": "string_list",
         "attr": attr.string_list(),
@@ -176,6 +177,10 @@ _tsc_flags = {
             "es2017.object",
             "es2017.sharedmemory",
             "es2017.string",
+            "es2019.array",
+            "es2019.object",
+            "es2019.string",
+            "es2020.string",
             "esnext.asynciterable",
         ]),
     },
