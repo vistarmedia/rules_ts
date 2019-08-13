@@ -5,6 +5,7 @@ js_library(
     srcs = [
         "compiler_host.js",
         "index.js",
+        "jsar_writer.js",
         "lru.js",
         "resolver.js",
         "strict_deps.js",

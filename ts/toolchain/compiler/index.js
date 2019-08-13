@@ -1,10 +1,11 @@
 const ts   = require('typescript');
 const util = require('util');
 
-const {CompilerHost} = require('./compiler_host');
-const {hostRequire}  = require('./compiler_host');
-const {newResolver}  = require('./resolver');
-const {strictDeps}   = require('./strict_deps');
+const {CompilerHost}  = require('./compiler_host');
+const {hostRequire}   = require('./compiler_host');
+const {newJsarWriter} = require('./jsar_writer');
+const {newResolver}   = require('./resolver');
+const {strictDeps}    = require('./strict_deps');
 
 
 function logError(error) {
@@ -120,7 +121,15 @@ async function compile(opts, inputs, perfMaxMs=0) {
   }
 
   const resolver = await newResolver(opts.lib, cmd.fileNames, checksums);
-  const compiler = new CompilerHost(cmd.options, resolver);
+
+  // Choose the compiler host based on which type of output we've been requested
+  // to build
+  let compiler;
+  if(opts.output_jsar) {
+    compiler = await newJsarWriter(opts.output_jsar, cmd.options, resolver);
+  } else {
+    compiler = new CompilerHost(cmd.options, resolver);
+  }
 
   const program = ts.createProgram(cmd.fileNames, cmd.options, compiler);
 

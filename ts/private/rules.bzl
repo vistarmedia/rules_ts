@@ -30,6 +30,8 @@ def _compile(ctx, srcs):
   inputs  = srcs + list(ts_defs)
   outputs = []
 
+  output_jsar_format = ctx.attr.output_format == 'jsar'
+  output_src_format  = not output_jsar_format
   declaration = ctx.attr.declaration
 
   lib = list(
@@ -54,11 +56,17 @@ def _compile(ctx, srcs):
 
     name = basename[:basename.rfind('.')]
     js_src = name + '.js'
-    outputs.append(ctx.new_file(js_src))
+    if output_src_format:
+      outputs.append(ctx.new_file(js_src))
 
-    if declaration:
+    if declaration and output_src_format:
       ts_def = name + '.d.ts'
       outputs.append(ctx.new_file(ts_def))
+
+  if output_jsar_format:
+    jsar_output = ctx.new_file(ctx.label.name + '.jsar')
+    outputs.append(jsar_output)
+    jsar_name = jsar_output.path
 
   # We will either be building source files (relative to '.'), or generated
   # files (relative to the bazel-bin directory). Since it's not possible to
@@ -82,7 +90,7 @@ def _compile(ctx, srcs):
 
   tsc_args = [
     '--rootDir', root_dir,
-    '--outDir', bin_dir,
+    '--outDir', bin_dir if output_src_format else '/',
   ]
 
   if declaration:
@@ -108,7 +116,9 @@ def _compile(ctx, srcs):
     transformers = struct(
       before = [_plugin_path(t) for t in ctx.attr.transform_before],
       after  = [_plugin_path(t) for t in ctx.attr.transform_after],
-    )
+    ),
+
+    output_jsar = jsar_name if output_jsar_format else None
   )
 
   flag_file = ctx.actions.declare_file(ctx.label.name + '.args')
@@ -127,12 +137,22 @@ def _compile(ctx, srcs):
     execution_requirements = {'supports-workers': '1'},
   )
 
-  runfiles = ctx.runfiles(collect_default=True)
-  return struct(
-    files    = depset(outputs),
-    ts_defs  = ts_defs,
-    runfiles = runfiles,
-  )
+  if output_jsar_format:
+    return struct(
+      files = depset([jsar_output]),
+      jsar  = jsar_output,
+      cjsar = jsar_output,
+
+      runtime_deps = runtime_deps(ctx.attr.deps),
+      compile_deps = compile_deps(ctx.attr.deps),
+    )
+  else:
+    runfiles = ctx.runfiles(collect_default=True)
+    return struct(
+      files    = depset(outputs),
+      ts_defs  = ts_defs,
+      runfiles = runfiles,
+    )
 
 
 def _ts_srcs_impl(ctx):
@@ -154,9 +174,6 @@ attrs = tsc_attrs + {
   'transform_before': js_lib_attr,
   'transform_after':  js_lib_attr,
 
-  # Allows importing across module boundaries using relative imports
-  'allow_relative': attr.bool(default=False),
-
   'tsc_config': attr.label(mandatory=False, providers=['tsc_flags']),
 
   'strict_deps': attr.bool(default=False, doc='Enable strict deps -- unsued ' +\
@@ -164,6 +181,13 @@ attrs = tsc_attrs + {
 
   'ignored_strict_deps': attr.label_list(default=[], doc='Dependencies ' +\
                   'which should not be checked for strictness'),
+
+  'output_format': attr.string(default='source', values=['source', 'jsar'],
+    doc = 'Determines if the output will be a source files as a js_library ' +\
+          'or a packaged jsar. The default is source, as its far easier to ' +\
+          'debug despite a slight increase in compilation time. Note that ' +\
+          'in situations where the output files of a ts_src compilation ' +\
+          'cannot be known at analyze time, this can be a hand escape hatch'),
 
   '_node': node_attr,
 
@@ -176,7 +200,7 @@ attrs = tsc_attrs + {
   '_typescript': attr.label(default = Label('@typescript//:lib')),
 }
 
-_ts_srcs = rule(
+ts_srcs = rule(
   _ts_srcs_impl,
   attrs = attrs + {
     'srcs':         attr.label_list(allow_files=ts_src_type),
@@ -184,7 +208,7 @@ _ts_srcs = rule(
   }
 )
 
-_ts_src = rule(
+ts_src = rule(
   _ts_src_impl,
   attrs = attrs + {
     'src':          attr.label(allow_files=ts_src_type, single_file=True),
@@ -192,21 +216,4 @@ _ts_src = rule(
   }
 )
 
-_tsc_config = rule(_tsc_config_impl, attrs = tsc_attrs)
-
-
-def _check_arguments(impl, name, **kwargs):
-  label = native.package_name() +':'+ name
-  if kwargs.get('allow_relative'):
-    print('WARNING %s: allow_relative is deprecated' % label)
-
-  impl(name=name, **kwargs)
-
-def ts_srcs(**kwargs):
-  _check_arguments(_ts_srcs, **kwargs)
-
-def ts_src(**kwargs):
-  _check_arguments(_ts_src, **kwargs)
-
-def tsc_config(**kwargs):
-  _check_arguments(_tsc_config, **kwargs)
+tsc_config = rule(_tsc_config_impl, attrs = tsc_attrs)

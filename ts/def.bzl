@@ -4,6 +4,11 @@ load('@io_bazel_rules_js//js:def.bzl',
   'js_test',
   'npm_install')
 
+load('@io_bazel_rules_js//js/private:rules.bzl',
+  'compile_deps',
+  'js_lib_attr',
+  'runtime_deps')
+
 load('@io_bazel_rules_ts//ts/private:rules.bzl',
   'ts_src',
   'ts_srcs',
@@ -33,22 +38,24 @@ def ts_repositories(version='3.4.5'):
 
   # TODO: Currently relying on the host workspace to define @protobufjs
 
-
 def ts_library(name, package=None, data=[], **kwargs):
-  src_name = name + '.src'
-  deps     = kwargs.get('deps', []) + ['@tslib//:lib']
-  ts_srcs(name=src_name, **kwargs)
+  if kwargs.get('output_format') == 'jsar':
+    ts_srcs(name=name, **kwargs)
+  else:
+    deps     = kwargs.get('deps', []) + ['@tslib//:lib']
+    src_name = name + '.src'
+    ts_srcs(name=src_name, **kwargs)
 
-  js_library(
-    name = name,
-    srcs = [src_name],
-    ts_defs = src_name,
-    deps = deps,
-    package = package,
-    data = data,
-    visibility = kwargs.get('visibility'),
-    testonly = kwargs.get('testonly', False),
-  )
+    js_library(
+      name = name,
+      srcs = [src_name],
+      ts_defs = src_name,
+      deps = deps,
+      package = package,
+      data = data,
+      visibility = kwargs.get('visibility'),
+      testonly = kwargs.get('testonly', False),
+    )
 
 
 def ts_binary(name, data=[], **kwargs):
