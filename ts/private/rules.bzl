@@ -167,7 +167,7 @@ def _tsc_config_impl(ctx):
   return struct(tsc_flags=ctx.attr)
 
 
-attrs = tsc_attrs + {
+attrs = dict(tsc_attrs.items() + {
   'ts_defs': attr.label_list(allow_files=ts_def_type),
   'deps':    js_lib_attr,
 
@@ -198,22 +198,22 @@ attrs = tsc_attrs + {
 
   '_tslib': attr.label(default = Label('@tslib//:lib')),
   '_typescript': attr.label(default = Label('@typescript//:lib')),
-}
+}.items())
 
 ts_srcs = rule(
   _ts_srcs_impl,
-  attrs = attrs + {
+  attrs = dict(attrs.items() + {
     'srcs':         attr.label_list(allow_files=ts_src_type),
     'declaration':  attr.bool(default=True),
-  }
+  }.items())
 )
 
 ts_src = rule(
   _ts_src_impl,
-  attrs = attrs + {
-    'src':          attr.label(allow_files=ts_src_type, single_file=True),
+  attrs = dict(attrs.items() + {
+    'src':          attr.label(allow_single_file=ts_src_type),
     'declaration':  attr.bool(default=False),
-  }
+  }.items())
 )
 
 tsc_config = rule(_tsc_config_impl, attrs = tsc_attrs)
