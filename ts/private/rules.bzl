@@ -11,14 +11,11 @@ ts_src_type = ['.ts', '.tsx', '.srcjar']
 ts_def_type = ['.d.ts']
 
 def _transitive_ts_defs(ctx):
-  ts_defs = depset()
-
-  for dep in ctx.attr.deps:
-    ts_defs += getattr(dep, 'ts_defs', depset())
-
-  ts_defs += getattr(ctx.files, 'ts_defs', depset())
-  return depset(ts_defs, order='postorder')
-
+  return depset(
+    order = 'postorder',
+    direct = ctx.files.ts_defs,
+    transitive = [getattr(dep, 'ts_defs', depset()) for dep in ctx.attr.deps],
+  )
 
 def _plugin_path(plugin):
   return plugin.label.package
@@ -27,20 +24,17 @@ def _plugin_path(plugin):
 def _compile(ctx, srcs):
   bin_dir = ctx.configuration.bin_dir.path
   ts_defs = _transitive_ts_defs(ctx)
-  inputs  = srcs + list(ts_defs)
   outputs = []
 
   output_jsar_format = ctx.attr.output_format == 'jsar'
   output_src_format  = not output_jsar_format
   declaration = ctx.attr.declaration
 
-  lib = list(
-    compile_deps(ctx.attr.deps) + \
-    runtime_deps(ctx.attr.transform_before + ctx.attr.transform_after) + \
-    runtime_deps([ctx.attr._tslib, ctx.attr._typescript])
-  )
-
-  inputs += lib
+  lib = depset(transitive=[
+    compile_deps(ctx.attr.deps),
+    runtime_deps(ctx.attr.transform_before + ctx.attr.transform_after),
+    runtime_deps([ctx.attr._tslib, ctx.attr._typescript]),
+  ])
 
   # For each input file, expect it to create a corresponding .js and .d.ts file.
   # If the source is a .d.ts file, pass it to the parser, but don't expect an
@@ -83,33 +77,40 @@ def _compile(ctx, srcs):
   if srcs and srcs[0].path.startswith(bin_dir):
     src_root = bin_dir + '/'
 
-  # Build up the command to pass node to invoke the TypeScript compiler with the
-  # necessary sources
-  inputs.append(ctx.executable._node)
-  inputs.append(ctx.executable._tsc)
-
-  tsc_args = [
-    '--rootDir', '/',
-    '--outDir', bin_dir if output_src_format else '/',
-  ]
+  tsc_args = ctx.actions.args()
+  tsc_args.add('--rootDir', '/')
+  tsc_args.add('--outDir', bin_dir if output_src_format else '/')
 
   if declaration:
-    tsc_args.append('--declaration')
+    tsc_args.add('--declaration')
 
-  tsc_args += tsc_flags(ctx.attr)
-  tsc_args += [ts_def.path for ts_def in ts_defs]
-  tsc_args += [src.path for src in srcs]
+  tsc_flags(tsc_args, ctx.attr)
+  tsc_args.add_all(ts_defs)
+  tsc_args.add_all(srcs)
+
+  tsc_args_file = ctx.actions.declare_file(ctx.label.name + '.tsc_args')
+  ctx.actions.write(
+    output = tsc_args_file,
+    content = tsc_args,
+  )
+
+  libs = ctx.actions.args().add_all(lib)
+  lib_paths_file = ctx.actions.declare_file(ctx.label.name + '.lib_paths')
+  ctx.actions.write(
+    output = lib_paths_file,
+    content = libs,
+  )
 
   # Provides the compiler a set of strict (non-transitive) dependencies for this
   # target. Maps each label to its jsar
   deps = [[str(dep.label), dep.cjsar.path] for dep in ctx.attr.deps]
 
   tsc_opts = struct(
-    label    = str(ctx.label),
-    args     = tsc_args,
-    lib      = [l.path for l in lib],
-    deps     = deps,
-    src_root = src_root,
+    label     = str(ctx.label),
+    args_file = tsc_args_file.path,
+    lib_file  = lib_paths_file.path,
+    deps      = deps,
+    src_root  = src_root,
 
     strict_deps         = ctx.attr.strict_deps,
     ignored_strict_deps = [str(d.label) for d in ctx.attr.ignored_strict_deps],
@@ -127,7 +128,12 @@ def _compile(ctx, srcs):
     output  = flag_file,
     content = tsc_opts.to_json(),
   )
-  inputs += [flag_file]
+
+  inputs = depset(
+    direct = srcs + [
+      ctx.executable._node, flag_file, tsc_args_file, lib_paths_file],
+    transitive = [lib, ts_defs],
+  )
 
   ctx.action(
     executable = ctx.executable._tsc,

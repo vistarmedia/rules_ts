@@ -1,3 +1,4 @@
+load("@bazel_skylib//lib:new_sets.bzl", "sets")
 
 _tsc_flags = {
 
@@ -151,14 +152,14 @@ _tsc_flags = {
     'type': 'string_list',
     'attr': attr.string_list(),
     'flag': '--lib',
-    'values': [
+    'values': sets.make([
       'es5', 'es6','es2015', 'es7', 'es2016', 'es2017', 'dom', 'dom.iterable',
       'webworker', 'scripthost', 'es2015.core', 'es2015.collection',
       'es2015.generator', 'es2015.iterable', 'es2015.promise', 'es2015.proxy',
       'es2015.reflect', 'es2015.symbol', 'es2015.symbol.wellknown',
       'es2016.array.include', 'es2017.object', 'es2017.sharedmemory',
       'es2017.string', 'esnext.asynciterable',
-    ],
+    ]),
   },
 
   # The maximum dependency depth to search under node_modules and load
@@ -382,31 +383,28 @@ def _string_list_flag_value(flag, value):
   if not value:
     return
   valid_values = flag['values']
-  if len(valid_values) != len((depset(valid_values) + depset(value)).to_list()):
+  if not sets.is_subset(sets.make(value), valid_values):
     fail("\nvalue %s invalid; must be one of:\n%s\n" % (value, valid_values))
-  return ','.join(value)
+  return value
 
 
-def tsc_flags(attrs):
+def tsc_flags(args, attrs):
   config_attr = attrs.tsc_config
   if config_attr:
     attrs = config_attr.tsc_flags
 
-  flags = []
   for field, flag in _tsc_flags.items():
     value = getattr(attrs, field)
     if not value: continue
 
     flag_type = flag['type']
     if flag_type == 'flag':
-      flags.append(flag['flag'])
+      args.add(flag['flag'])
     elif flag_type == 'value':
-      flags += [flag['flag'], str(value)]
+      args.add(flag['flag'], str(value))
     elif flag_type == 'string_list':
       flag_value = _string_list_flag_value(flag, value)
       if flag_value:
-        flags += [flag['flag'], flag_value]
+        args.add_joined(flag['flag'], flag_value, join_with=',')
     else:
       fail('Unknown flag type "%s"' % flag_type)
-
-  return flags

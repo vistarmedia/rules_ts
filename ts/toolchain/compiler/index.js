@@ -1,11 +1,14 @@
 const ts   = require('typescript');
 const util = require('util');
+const fs   = require('fs');
 
 const {CompilerHost}  = require('./compiler_host');
 const {hostRequire}   = require('./compiler_host');
 const {newJsarWriter} = require('./jsar_writer');
 const {newResolver}   = require('./resolver');
 const {strictDeps}    = require('./strict_deps');
+
+const readFile = util.promisify(fs.readFile);
 
 
 function logError(error) {
@@ -114,14 +117,17 @@ async function compile(opts, inputs, perfMaxMs=0) {
     return acc;
   }, {});
 
-  const cmd = ts.parseCommandLine(opts.args)
+  const argFileContent = await readFile(opts.args_file);
+  const cmd = ts.parseCommandLine(argFileContent.toString().trim().split("\n"));
 
   if(cmd.errors.length > 0) {
     return exitErrors(cmd.errors)
   }
 
+  const libFileContent = await readFile(opts.lib_file);
+  const libs = libFileContent.toString().trim().split("\n");
   const [resolver, srcFiles] =
-    await newResolver(opts.lib, cmd.fileNames, checksums, opts.src_root);
+    await newResolver(libs, cmd.fileNames, checksums, opts.src_root);
 
   // Choose the compiler host based on which type of output we've been requested
   // to build
