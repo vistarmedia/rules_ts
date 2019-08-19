@@ -7,7 +7,7 @@ load('@com_vistarmedia_rules_js//js/private:rules.bzl',
 load('//ts/private:flags.bzl', 'tsc_attrs', 'tsc_flags')
 
 
-ts_src_type = ['.ts', '.tsx']
+ts_src_type = ['.ts', '.tsx', '.srcjar']
 ts_def_type = ['.d.ts']
 
 def _transitive_ts_defs(ctx):
@@ -71,7 +71,7 @@ def _compile(ctx, srcs):
   # We will either be building source files (relative to '.'), or generated
   # files (relative to the bazel-bin directory). Since it's not possible to
   # construct a typescript declaration which mixed the two files, we will assume
-  # our source files are relative to '.' unless the first file starts with the
+  # our source files are relative to '/' unless the first file starts with the
   # bazel-bin directory, then use that as the source root.
   #
   # When tsc tries to infer the source root directory, it will take the longest
@@ -79,9 +79,9 @@ def _compile(ctx, srcs):
   # module where tsc as been invoked. It likely works well for
   # compile-everything-at-once projects, but would put everything at the top
   # level in a scheme that compiles each module independently.
-  root_dir = '.'
+  src_root = '/'
   if srcs and srcs[0].path.startswith(bin_dir):
-    root_dir = bin_dir
+    src_root = bin_dir + '/'
 
   # Build up the command to pass node to invoke the TypeScript compiler with the
   # necessary sources
@@ -89,7 +89,7 @@ def _compile(ctx, srcs):
   inputs.append(ctx.executable._tsc)
 
   tsc_args = [
-    '--rootDir', root_dir,
+    '--rootDir', '/',
     '--outDir', bin_dir if output_src_format else '/',
   ]
 
@@ -105,10 +105,11 @@ def _compile(ctx, srcs):
   deps = [[str(dep.label), dep.cjsar.path] for dep in ctx.attr.deps]
 
   tsc_opts = struct(
-    label = str(ctx.label),
-    args  = tsc_args,
-    lib   = [l.path for l in lib],
-    deps  = deps,
+    label    = str(ctx.label),
+    args     = tsc_args,
+    lib      = [l.path for l in lib],
+    deps     = deps,
+    src_root = src_root,
 
     strict_deps         = ctx.attr.strict_deps,
     ignored_strict_deps = [str(d.label) for d in ctx.attr.ignored_strict_deps],

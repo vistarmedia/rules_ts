@@ -120,7 +120,8 @@ async function compile(opts, inputs, perfMaxMs=0) {
     return exitErrors(cmd.errors)
   }
 
-  const resolver = await newResolver(opts.lib, cmd.fileNames, checksums);
+  const [resolver, srcFiles] =
+    await newResolver(opts.lib, cmd.fileNames, checksums, opts.src_root);
 
   // Choose the compiler host based on which type of output we've been requested
   // to build
@@ -131,7 +132,7 @@ async function compile(opts, inputs, perfMaxMs=0) {
     compiler = new CompilerHost(cmd.options, resolver);
   }
 
-  const program = ts.createProgram(cmd.fileNames, cmd.options, compiler);
+  const program = ts.createProgram(srcFiles, cmd.options, compiler);
 
   const beforeTransforms = opts.transformers.before.map((t) =>
       hostRequire(compiler, cmd.options, t).default(program));

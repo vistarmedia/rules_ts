@@ -11,10 +11,12 @@ const path = require('path');
 const util = require('util');
 const fs   = require('fs');
 
+const AdmZip     = require('adm-zip');
 const ts         = require('typescript');
 const {unbundle} = require('com_vistarmedia_rules_js/js/tools/jsar/jsar');
 
 const {LRU} = require('./lru');
+
 
 const readFile = util.promisify(fs.readFile);
 
@@ -303,12 +305,38 @@ async function libResolverFromJsars(names, checksums) {
   return {resolver, jsarByFile};
 }
 
-async function libResolverFromFiles(names) {
-  let fileMap = {}
+async function libResolverFromFiles(names, root) {
+  let fileMap = {};
+  let files = [];
   await Promise.all(names.map(async (name) => {
-    fileMap["/" + name] = await readFile(name);
+    const fname = name.startsWith(root)
+      ? name.slice(root.length)
+      : name;
+
+    files.push(fname);
+    fileMap[`/${fname}`] = await readFile(name);
   }));
-  return new LibResolver(fileMap);
+  return [new LibResolver(fileMap), files];
+}
+
+function libResolverFromSrcJars(srcJars) {
+  let fileMap = {}
+  let files = [];
+
+  for(srcJar of srcJars) {
+    const zip = new AdmZip(srcJar);
+    for({entryName, getData} of zip.getEntries()) {
+      const name = `/${entryName}`
+
+      if(name.endsWith('.ts')) {
+        fileMap[name] = getData().toString('utf-8');
+        files.push(entryName);
+      }
+    }
+  }
+
+  const resolver = new LibResolver(fileMap);
+  return [new LibResolver(fileMap), files];
 }
 
 /**
@@ -319,9 +347,23 @@ async function libResolverFromFiles(names) {
  * a `node_modules` directory in the current directory on top of the system's
  * actual file-structure.
  */
-async function newResolver(jsars, files, checksums) {
+async function newResolver(jsars, files, checksums, root) {
   ts.performance.mark("newResolverStart");
-  const srcResolver = await libResolverFromFiles(files);
+
+  const [srcs, srcJars] = files.reduce(([srcs, jars], file) => {
+    if(file.endsWith('.srcjar')) {
+      return [srcs, jars.concat([file])]
+    } else {
+      return [srcs.concat([file]), jars]
+    }
+    return [srcs, jars];
+  }, [[], []]);
+
+  const [srcJarResolver, srcJarFiles] = libResolverFromSrcJars(srcJars);
+  const [srcFileResolver, srcFiles] = await libResolverFromFiles(srcs, root);
+
+  const srcResolver = new CompositeResolver(srcFileResolver, srcJarResolver);
+
   const {resolver, jsarByFile} = await libResolverFromJsars(jsars, checksums);
   const libResolver = new StripPrefixResolver("/node_modules", resolver);
 
@@ -329,7 +371,7 @@ async function newResolver(jsars, files, checksums) {
   workspace.jsarByFile = jsarByFile;
 
   ts.performance.measure("NewResolver", "newResolverStart");
-  return workspace;
+  return [workspace, srcFiles.concat(srcJarFiles)];
 }
 
 module.exports = {

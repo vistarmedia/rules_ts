@@ -12,6 +12,7 @@ js_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
+        "@adm.zip//:lib",
         "@com_vistarmedia_rules_js//js/tools/jsar",
         "@node//:lib",
         "@typescript//:lib",
