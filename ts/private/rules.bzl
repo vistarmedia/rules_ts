@@ -111,6 +111,7 @@ def _compile(ctx, srcs):
     lib_file  = lib_paths_file.path,
     deps      = deps,
     src_root  = src_root,
+    package   = ctx.attr.package or ctx.label.package,
 
     strict_deps         = ctx.attr.strict_deps,
     ignored_strict_deps = [str(d.label) for d in ctx.attr.ignored_strict_deps],
@@ -195,6 +196,10 @@ attrs = dict(tsc_attrs.items() + {
           'debug despite a slight increase in compilation time. Note that ' +\
           'in situations where the output files of a ts_src compilation ' +\
           'cannot be known at analyze time, this can be a hand escape hatch'),
+
+  'package': attr.string(
+    doc = 'Optionally rewrite the package the source gets compiled to. See ' +\
+          'rules_js for more information'),
 
   '_node': node_attr,
 

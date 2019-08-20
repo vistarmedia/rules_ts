@@ -7,6 +7,7 @@ load('@com_vistarmedia_rules_js//js:def.bzl',
 load('@com_vistarmedia_rules_js//js/private:rules.bzl',
   'compile_deps',
   'js_lib_attr',
+  'raw_jsar',
   'runtime_deps')
 
 load('@io_bazel_rules_ts//ts/private:rules.bzl',
@@ -46,11 +47,18 @@ def ts_repositories(version='3.4.5'):
   # TODO: Currently relying on the host workspace to define @protobufjs
 
 def ts_library(name, package=None, data=[], **kwargs):
+  deps     = kwargs.get('deps', []) + ['@tslib//:lib']
+  src_name = name + '.src'
   if kwargs.get('output_format') == 'jsar':
-    ts_srcs(name=name, **kwargs)
+    ts_srcs(name=src_name, package=package, **kwargs)
+    raw_jsar(
+      name = name,
+      srcs = src_name,
+      deps = deps,
+      visibility = kwargs.get('visibility'),
+      testonly = kwargs.get('testonly', False),
+    )
   else:
-    deps     = kwargs.get('deps', []) + ['@tslib//:lib']
-    src_name = name + '.src'
     ts_srcs(name=src_name, **kwargs)
 
     js_library(

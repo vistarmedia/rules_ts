@@ -133,7 +133,11 @@ async function compile(opts, inputs, perfMaxMs=0) {
   // to build
   let compiler;
   if(opts.output_jsar) {
-    compiler = await newJsarWriter(opts.output_jsar, cmd.options, resolver);
+    compiler = await newJsarWriter(
+      opts.output_jsar,
+      opts.package,
+      cmd.options,
+      resolver);
   } else {
     compiler = new CompilerHost(cmd.options, resolver);
   }
