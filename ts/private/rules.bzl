@@ -51,14 +51,14 @@ def _compile(ctx, srcs):
     name = basename[:basename.rfind('.')]
     js_src = name + '.js'
     if output_src_format:
-      outputs.append(ctx.new_file(js_src))
+      outputs.append(ctx.actions.declare_file(js_src))
 
     if declaration and output_src_format:
       ts_def = name + '.d.ts'
-      outputs.append(ctx.new_file(ts_def))
+      outputs.append(ctx.actions.declare_file(ts_def))
 
   if output_jsar_format:
-    jsar_output = ctx.new_file(ctx.label.name + '.jsar')
+    jsar_output = ctx.actions.declare_file(ctx.label.name + '.jsar')
     outputs.append(jsar_output)
     jsar_name = jsar_output.path
 
@@ -130,15 +130,15 @@ def _compile(ctx, srcs):
   )
 
   inputs = depset(
-    direct = srcs + [
-      ctx.executable._node, flag_file, tsc_args_file, lib_paths_file],
+    direct = srcs + [flag_file, tsc_args_file, lib_paths_file],
     transitive = [lib, ts_defs],
   )
 
-  ctx.action(
+  ctx.actions.run(
     executable = ctx.executable._tsc,
     arguments  = ['--flagfile=' + flag_file.path],
     inputs     = inputs,
+    tools      = [ctx.executable._node],
     outputs    = outputs,
     mnemonic   = 'CompileTS',
     execution_requirements = {'supports-workers': '1'},
