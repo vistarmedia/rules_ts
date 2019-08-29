@@ -21,10 +21,11 @@ load(
 
 tsc_config = _tsc_config
 
-def ts_repositories(version = "3.4.5"):
+def ts_repositories(version = "3.6.2"):
     ts_versions = {
         "3.4.5": "3c107fa7d3e48a750f12f503a4cd6b312ef0b03b905c5991831167d27a81a8e7",
         "3.5.1": "ea87090c959a068a74a45337a9374d89c1b539b0044c3d998a7ec82afc8cdbe6",
+        "3.6.2": "9495625742582db7cb5cc04d34a0b56b8b4b7af1b56b87944fbf30be439a1641",
     }
     ts_sha = ts_versions.get(version)
     if not ts_sha:
