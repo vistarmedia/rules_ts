@@ -35,26 +35,20 @@ def _compile(ctx, srcs):
         runtime_deps([ctx.attr._tslib, ctx.attr._typescript]),
     ])
 
-    # For each input file, expect it to create a corresponding .js and .d.ts file.
-    # If the source is a .d.ts file, pass it to the parser, but don't expect an
-    # output file
-    package = ctx.label.package + "/"
+    # For each input file, expect it to create a corresponding .js and .d.ts
+    # file.  If the source is a .d.ts file, pass it to the parser, but don't
+    # expect an output file
     for src in srcs:
         basename = src.basename
-
-        # Allow for sub-directories of a single module
-        path = src.path
-        if path.startswith(package):
-            basename = path.replace(package, "", 1)
 
         name = basename[:basename.rfind(".")]
         js_src = name + ".js"
         if output_src_format:
-            outputs.append(ctx.actions.declare_file(js_src))
+            outputs.append(ctx.actions.declare_file(js_src, sibling = src))
 
         if declaration and output_src_format:
             ts_def = name + ".d.ts"
-            outputs.append(ctx.actions.declare_file(ts_def))
+            outputs.append(ctx.actions.declare_file(ts_def, sibling = src))
 
     if output_jsar_format:
         jsar_output = ctx.actions.declare_file(ctx.label.name + ".jsar")
