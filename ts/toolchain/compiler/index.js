@@ -1,68 +1,72 @@
-const ts   = require('typescript');
-const util = require('util');
-const fs   = require('fs');
+const ts = require("typescript");
+const util = require("util");
+const fs = require("fs");
 
-const {CompilerHost}  = require('./compiler_host');
-const {hostRequire}   = require('./compiler_host');
-const {newJsarWriter} = require('./jsar_writer');
-const {newResolver}   = require('./resolver');
-const {strictDeps}    = require('./strict_deps');
+const { CompilerHost } = require("./compiler_host");
+const { hostRequire } = require("./compiler_host");
+const { newJsarWriter } = require("./jsar_writer");
+const { newResolver } = require("./resolver");
+const { strictDeps } = require("./strict_deps");
 
 const readFile = util.promisify(fs.readFile);
 
-
 function logError(error) {
-  const {
-    code,
-    file,
-    messageText,
-    start,
-  } = error
+  const { code, file, messageText, start } = error;
 
-  if(file) {
-    const {line, character} = file.getLineAndCharacterOfPosition(start);
+  if (file) {
+    const { line, character } = file.getLineAndCharacterOfPosition(start);
     const message = ts.flattenDiagnosticMessageText(messageText, "\n");
-    return `[TS${code}] ${file.fileName} ({$line+1}:${character+1}) ${message}`
+    return `[TS${code}] ${file.fileName} ({$line+1}:${character +
+      1}) ${message}`;
   } else {
     return ts.flattenDiagnosticMessageText(
-      `[TS${code}] ${messageText}` + error.messageText, "\n");
+      `[TS${code}] ${messageText}` + error.messageText,
+      "\n"
+    );
   }
 }
 
 function exitErrors(diagnostics, host) {
-  let output = '';
+  let output = "";
 
-  if(host) {
+  if (host) {
     output = ts.formatDiagnosticsWithColorAndContext(diagnostics, host);
   } else {
     output = diagnostics.map(logError).join("\n");
   }
 
-  return {exitCode: 1, output};
+  return { exitCode: 1, output };
 }
 
 function checkStrictImports(label, imports, jsarByFile, depByJsar, ignored) {
-  const prefix = '/node_modules/';
+  const prefix = "/node_modules/";
   const usedJsars = [];
   const errors = [];
 
   // Warn about transitive imports
-  for(const src of Object.keys(imports)) {
-    for(const imptPath of imports[src]) {
-      if(!imptPath.startsWith(prefix)) {
+  for (const src of Object.keys(imports)) {
+    for (const imptPath of imports[src]) {
+      if (!imptPath.startsWith(prefix)) {
         // TODO: Look more into this. I believe there are some things that sneak
         // by that aren't correct, but it all gets bogged down in the specifics
         // of type resolution
         continue;
       }
-      const file = imptPath.slice(prefix.length-1);
+      const file = imptPath.slice(prefix.length - 1);
       const jsar = jsarByFile[file];
-      const dep  = depByJsar[jsar];
-      if(dep === undefined) {
-        errors.push(util.format('%s: %s imports %s through %s transitively',
-          label, src, file, jsar));
+      const dep = depByJsar[jsar];
+      if (dep === undefined) {
+        errors.push(
+          util.format(
+            "%s: %s imports %s through %s transitively",
+            label,
+            src,
+            file,
+            jsar
+          )
+        );
       } else {
-        if(usedJsars.indexOf(dep) < 0) {
+        if (usedJsars.indexOf(dep) < 0) {
           usedJsars.push(dep);
         }
       }
@@ -70,12 +74,14 @@ function checkStrictImports(label, imports, jsarByFile, depByJsar, ignored) {
   }
 
   // Warn about unused deps
-  for(const dep of Object.values(depByJsar)) {
-    if(ignored.indexOf(dep) >= 0) {
+  for (const dep of Object.values(depByJsar)) {
+    if (ignored.indexOf(dep) >= 0) {
       continue;
     }
-    if(usedJsars.indexOf(dep) < 0) {
-      errors.push(util.format('%s Unused dep %s should be removed', label, dep));
+    if (usedJsars.indexOf(dep) < 0) {
+      errors.push(
+        util.format("%s Unused dep %s should be removed", label, dep)
+      );
     }
   }
 
@@ -86,7 +92,7 @@ function checkStrictImports(label, imports, jsarByFile, depByJsar, ignored) {
 // `perfMaxMs`. Otherwise, return an empty string
 function perfLog(label, perfMaxMs) {
   let totalTimeMs = 0;
-  let output = '';
+  let output = "";
 
   ts.performance.forEachMeasure((key, measure) => {
     totalTimeMs += measure;
@@ -96,14 +102,14 @@ function perfLog(label, perfMaxMs) {
   output += `[PERF ${label}] TOTAL ${totalTimeMs}ms\n`;
   ts.performance.disable();
 
-  if(totalTimeMs > perfMaxMs) {
+  if (totalTimeMs > perfMaxMs) {
     return output;
   }
-  return '';
+  return "";
 }
 
-async function compile(opts, inputs, perfMaxMs=0) {
-  if(perfMaxMs) {
+async function compile(opts, inputs, perfMaxMs = 0) {
+  if (perfMaxMs) {
     ts.performance.enable();
   }
 
@@ -118,68 +124,89 @@ async function compile(opts, inputs, perfMaxMs=0) {
   }, {});
 
   const argFileContent = await readFile(opts.args_file);
-  const cmd = ts.parseCommandLine(argFileContent.toString().trim().split("\n"));
+  const cmd = ts.parseCommandLine(
+    argFileContent
+      .toString()
+      .trim()
+      .split("\n")
+  );
 
-  if(cmd.errors.length > 0) {
-    return exitErrors(cmd.errors)
+  if (cmd.errors.length > 0) {
+    return exitErrors(cmd.errors);
   }
 
   const libFileContent = await readFile(opts.lib_file);
-  const libs = libFileContent.toString().trim().split("\n");
-  const [resolver, srcFiles] =
-    await newResolver(libs, cmd.fileNames, checksums, opts.src_root);
+  const libs = libFileContent
+    .toString()
+    .trim()
+    .split("\n");
+  const [resolver, srcFiles] = await newResolver(
+    libs,
+    cmd.fileNames,
+    checksums,
+    opts.src_root
+  );
 
   // Choose the compiler host based on which type of output we've been requested
   // to build
   let compiler;
-  if(opts.output_jsar) {
+  if (opts.output_jsar) {
     compiler = await newJsarWriter(
       opts.output_jsar,
       opts.package,
       cmd.options,
-      resolver);
+      resolver
+    );
   } else {
     compiler = new CompilerHost(cmd.options, resolver);
   }
 
   const program = ts.createProgram(srcFiles, cmd.options, compiler);
 
-  const beforeTransforms = opts.transformers.before.map((t) =>
-      hostRequire(compiler, cmd.options, t).default(program));
+  const beforeTransforms = opts.transformers.before.map(t =>
+    hostRequire(compiler, cmd.options, t).default(program)
+  );
 
-  const afterTransforms = opts.transformers.after.map((t) =>
-      hostRequire(compiler, cmd.options, t).default(program));
+  const afterTransforms = opts.transformers.after.map(t =>
+    hostRequire(compiler, cmd.options, t).default(program)
+  );
 
   const strictDepsPlugin = strictDeps(program);
   const transformers = {
     before: beforeTransforms.concat([strictDepsPlugin]),
-    after:  afterTransforms,
+    after: afterTransforms
   };
 
-  const {emitSkipped, diagnostics} = program.emit(
-    undefined, undefined, undefined, false, transformers);
+  const { emitSkipped, diagnostics } = program.emit(
+    undefined,
+    undefined,
+    undefined,
+    false,
+    transformers
+  );
 
-  if(diagnostics.length > 0) {
+  if (diagnostics.length > 0) {
     return exitErrors(diagnostics, compiler);
   }
 
-  if(opts.strict_deps) {
+  if (opts.strict_deps) {
     const errors = checkStrictImports(
       opts.label,
       strictDepsPlugin.imports(),
       resolver.jsarByFile,
       depByJsar,
-      opts.ignored_strict_deps);
+      opts.ignored_strict_deps
+    );
 
-    if(errors.length > 0) {
-      return {exitCode: 3, output: errors.join("\n")};
+    if (errors.length > 0) {
+      return { exitCode: 3, output: errors.join("\n") };
     }
   }
 
-  const output = perfMaxMs ? perfLog(opts.label, perfMaxMs) : '';
-  return {exitCode: 0, output: output};
+  const output = perfMaxMs ? perfLog(opts.label, perfMaxMs) : "";
+  return { exitCode: 0, output: output };
 }
 
 module.exports = {
-  compile,
-}
+  compile
+};

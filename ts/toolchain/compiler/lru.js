@@ -1,5 +1,4 @@
 class LRU {
-
   constructor(size) {
     this._size = size;
 
@@ -9,7 +8,7 @@ class LRU {
 
   // Does promote key
   get(key) {
-    if(this.hasKey(key)) {
+    if (this.hasKey(key)) {
       this._promote(key);
       return this._values[key];
     }
@@ -28,17 +27,17 @@ class LRU {
 
   _promote(key) {
     const index = this._keys.indexOf(key);
-    console.assert(this._keys.length === this._size, 'Size got mangled');
+    console.assert(this._keys.length === this._size, "Size got mangled");
 
     // Adding a new key, drop the tail
-    if(index < 0) {
+    if (index < 0) {
       this._keys.unshift(key);
       this._expire();
       return;
     }
 
     // Promoting an existing key, move to head
-    if(index > 0) {
+    if (index > 0) {
       this._keys.splice(index, 1);
       this._keys.unshift(key);
       return;
@@ -49,9 +48,9 @@ class LRU {
 
   // Removes all oldest keys
   _expire() {
-    for(let i=this._keys.length-1; i>=this._size; i--) {
+    for (let i = this._keys.length - 1; i >= this._size; i--) {
       const key = this._keys[i];
-      if(key !== undefined) {
+      if (key !== undefined) {
         delete this._values[key];
       }
       this._keys.pop();
@@ -61,4 +60,4 @@ class LRU {
 
 module.exports = {
   LRU
-}
+};

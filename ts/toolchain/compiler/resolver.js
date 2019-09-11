@@ -7,16 +7,15 @@
 //    /my/source/File2.ts
 //    /node_modules/lodash/package.json
 //    /node_modules/lodash/index.js
-const path = require('path');
-const util = require('util');
-const fs   = require('fs');
+const path = require("path");
+const util = require("util");
+const fs = require("fs");
 
-const AdmZip     = require('adm-zip');
-const ts         = require('typescript');
-const {unbundle} = require('com_vistarmedia_rules_js/js/tools/jsar/jsar');
+const AdmZip = require("adm-zip");
+const ts = require("typescript");
+const { unbundle } = require("com_vistarmedia_rules_js/js/tools/jsar/jsar");
 
-const {LRU} = require('./lru');
-
+const { LRU } = require("./lru");
 
 const readFile = util.promisify(fs.readFile);
 
@@ -31,7 +30,7 @@ const readFile = util.promisify(fs.readFile);
  */
 class Directories {
   constructor() {
-    this._dirs = {}
+    this._dirs = {};
   }
 
   /**
@@ -43,20 +42,20 @@ class Directories {
   }
 
   visitDirectory(dirName) {
-    if(dirName === "/") {
+    if (dirName === "/") {
       return;
     }
 
-    if(!(dirName in this._dirs)) {
+    if (!(dirName in this._dirs)) {
       this._dirs[dirName] = [];
     }
 
-    const baseName  = path.basename(dirName);
+    const baseName = path.basename(dirName);
     const parentDir = path.dirname(dirName);
 
-    if(parentDir in this._dirs) {
+    if (parentDir in this._dirs) {
       const existing = this._dirs[parentDir];
-      if(this._dirs[parentDir].indexOf(baseName) < 0) {
+      if (this._dirs[parentDir].indexOf(baseName) < 0) {
         this._dirs[parentDir].push(baseName);
       }
     } else {
@@ -77,7 +76,6 @@ class Directories {
     return this._dirs[dirName];
   }
 }
-
 
 /**
  * Resolver which can take a mapping of source file names to their contents.
@@ -103,34 +101,34 @@ class LibResolver {
     this._files = files;
 
     this._directories = new Directories();
-    for(const file in files) {
+    for (const file in files) {
       this._directories.visitFile(file);
     }
   }
 
   fileExists(fileName) {
-    if(fileName[0] !== '/') {
-      throw Error('non-absolute file name', fileName);
+    if (fileName[0] !== "/") {
+      throw Error("non-absolute file name", fileName);
     }
     return fileName in this._files;
   }
 
   readFile(fileName) {
-    if(fileName[0] !== '/') {
-      throw Error('non-absolute file name', fileName);
+    if (fileName[0] !== "/") {
+      throw Error("non-absolute file name", fileName);
     }
     const buf = this._files[fileName];
-    if(buf) {
-      return buf.toString('utf8');
+    if (buf) {
+      return buf.toString("utf8");
     }
   }
 
   directoryExists(dirName) {
-    if(dirName[0] !== '/') {
-      throw Error('non-absolute directory name ' + dirName);
+    if (dirName[0] !== "/") {
+      throw Error("non-absolute directory name " + dirName);
     }
-    if(dirName !== "/" && dirName[dirName.length-1] === '/') {
-      console.error('trailing slash of directory name:' + dirName);
+    if (dirName !== "/" && dirName[dirName.length - 1] === "/") {
+      console.error("trailing slash of directory name:" + dirName);
       dirName = dirName.slice(0, -1);
     }
     return this._directories.exists(dirName);
@@ -158,56 +156,54 @@ class StripPrefixResolver {
 
   fileExists(fileName) {
     const name = this._path(fileName);
-    if(name !== undefined) {
+    if (name !== undefined) {
       return this._resolver.fileExists(name);
     }
-    return false
+    return false;
   }
 
   readFile(fileName) {
     const name = this._path(fileName);
-    if(name !== undefined) {
+    if (name !== undefined) {
       return this._resolver.readFile(name);
     }
   }
 
   directoryExists(dirName) {
-    if(this._directories.exists(dirName)) {
+    if (this._directories.exists(dirName)) {
       return true;
     }
 
     let name = this._path(dirName);
-    if(name !== undefined) {
+    if (name !== undefined) {
       return this._resolver.directoryExists(name);
     }
     return false;
   }
 
   getDirectories(dirName) {
-    if(dirName === this._prefix) {
+    if (dirName === this._prefix) {
       return this._resolver.getDirectories("/");
     }
 
     const prefixDirs = this._directories.get(dirName);
-    if(prefixDirs !== undefined) {
+    if (prefixDirs !== undefined) {
       return prefixDirs;
     }
 
     let name = this._path(dirName);
-    if(name !== undefined) {
+    if (name !== undefined) {
       return this._resolver.getDirectories(name);
     }
   }
 
   _path(fileName) {
-    if(!fileName.startsWith(this._prefix)) {
+    if (!fileName.startsWith(this._prefix)) {
       return;
     }
     return fileName.slice(this._prefix.length);
   }
-
 }
-
 
 /**
  * Overlays multiple resolvers on top of each other. Their precedence is
@@ -219,17 +215,16 @@ class StripPrefixResolver {
  * listings for all `Resolver` instances handed to it.
  */
 class CompositeResolver {
-
   constructor() {
     this._resolvers = [];
-    for(const arg of arguments) {
+    for (const arg of arguments) {
       this._resolvers.push(arg);
     }
   }
 
   fileExists(fileName) {
-    for(const resolver of this._resolvers) {
-      if(resolver.fileExists(fileName)) {
+    for (const resolver of this._resolvers) {
+      if (resolver.fileExists(fileName)) {
         return true;
       }
     }
@@ -237,16 +232,16 @@ class CompositeResolver {
   }
 
   readFile(fileName) {
-    for(const resolver of this._resolvers) {
-      if(resolver.fileExists(fileName)) {
+    for (const resolver of this._resolvers) {
+      if (resolver.fileExists(fileName)) {
         return resolver.readFile(fileName);
       }
     }
   }
 
   directoryExists(dirName) {
-    for(const resolver of this._resolvers) {
-      if(resolver.directoryExists(dirName)) {
+    for (const resolver of this._resolvers) {
+      if (resolver.directoryExists(dirName)) {
         return true;
       }
     }
@@ -255,19 +250,17 @@ class CompositeResolver {
 
   getDirectories(dirName) {
     let dirs = {};
-    for(const resolver of this._resolvers) {
-      if(!resolver.directoryExists(dirName)) {
+    for (const resolver of this._resolvers) {
+      if (!resolver.directoryExists(dirName)) {
         continue;
       }
-      for(const dir of resolver.getDirectories(dirName)) {
+      for (const dir of resolver.getDirectories(dirName)) {
         dirs[dir] = true;
       }
     }
     return Object.keys(dirs);
   }
-
 }
-
 
 /**
  * Given an array of `jsar` file names, read each and build a mapping of file
@@ -277,19 +270,19 @@ class CompositeResolver {
 const libCache = new LRU(500);
 async function libResolverFromJsars(names, checksums) {
   const jsarByFile = {};
-  const bundles = names.map(async (name) => {
+  const bundles = names.map(async name => {
     let bundle;
     const checksum = checksums[name];
-    if(checksum !== undefined && libCache.hasKey(checksum)) {
+    if (checksum !== undefined && libCache.hasKey(checksum)) {
       bundle = libCache.get(checksum);
     } else {
       bundle = await unbundle(await readFile(name));
-      if(checksum !== undefined) {
+      if (checksum !== undefined) {
         libCache.set(checksum, bundle);
       }
     }
 
-    for(const file of Object.keys(bundle)) {
+    for (const file of Object.keys(bundle)) {
       jsarByFile[file] = name;
     }
 
@@ -297,39 +290,39 @@ async function libResolverFromJsars(names, checksums) {
   });
 
   let fileMap = {};
-  for(let bundle of await Promise.all(bundles)) {
+  for (let bundle of await Promise.all(bundles)) {
     Object.assign(fileMap, bundle);
   }
   const resolver = new LibResolver(fileMap);
 
-  return {resolver, jsarByFile};
+  return { resolver, jsarByFile };
 }
 
 async function libResolverFromFiles(names, root) {
   let fileMap = {};
   let files = [];
-  await Promise.all(names.map(async (name) => {
-    const fname = name.startsWith(root)
-      ? name.slice(root.length)
-      : name;
+  await Promise.all(
+    names.map(async name => {
+      const fname = name.startsWith(root) ? name.slice(root.length) : name;
 
-    files.push(fname);
-    fileMap[`/${fname}`] = await readFile(name);
-  }));
+      files.push(fname);
+      fileMap[`/${fname}`] = await readFile(name);
+    })
+  );
   return [new LibResolver(fileMap), files];
 }
 
 function libResolverFromSrcJars(srcJars) {
-  let fileMap = {}
+  let fileMap = {};
   let files = [];
 
-  for(srcJar of srcJars) {
+  for (srcJar of srcJars) {
     const zip = new AdmZip(srcJar);
-    for({entryName, getData} of zip.getEntries()) {
-      const name = `/${entryName}`
+    for ({ entryName, getData } of zip.getEntries()) {
+      const name = `/${entryName}`;
 
-      if(name.endsWith('.ts')) {
-        fileMap[name] = getData().toString('utf-8');
+      if (name.endsWith(".ts")) {
+        fileMap[name] = getData().toString("utf-8");
         files.push(entryName);
       }
     }
@@ -350,21 +343,24 @@ function libResolverFromSrcJars(srcJars) {
 async function newResolver(jsars, files, checksums, root) {
   ts.performance.mark("newResolverStart");
 
-  const [srcs, srcJars] = files.reduce(([srcs, jars], file) => {
-    if(file.endsWith('.srcjar')) {
-      return [srcs, jars.concat([file])]
-    } else {
-      return [srcs.concat([file]), jars]
-    }
-    return [srcs, jars];
-  }, [[], []]);
+  const [srcs, srcJars] = files.reduce(
+    ([srcs, jars], file) => {
+      if (file.endsWith(".srcjar")) {
+        return [srcs, jars.concat([file])];
+      } else {
+        return [srcs.concat([file]), jars];
+      }
+      return [srcs, jars];
+    },
+    [[], []]
+  );
 
   const [srcJarResolver, srcJarFiles] = libResolverFromSrcJars(srcJars);
   const [srcFileResolver, srcFiles] = await libResolverFromFiles(srcs, root);
 
   const srcResolver = new CompositeResolver(srcFileResolver, srcJarResolver);
 
-  const {resolver, jsarByFile} = await libResolverFromJsars(jsars, checksums);
+  const { resolver, jsarByFile } = await libResolverFromJsars(jsars, checksums);
   const libResolver = new StripPrefixResolver("/node_modules", resolver);
 
   const workspace = new CompositeResolver(libResolver, srcResolver);
@@ -375,6 +371,6 @@ async function newResolver(jsars, files, checksums, root) {
 }
 
 module.exports = {
-  __test__: {LibResolver, StripPrefixResolver},
-  newResolver,
+  __test__: { LibResolver, StripPrefixResolver },
+  newResolver
 };

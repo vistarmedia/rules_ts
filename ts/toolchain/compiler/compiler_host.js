@@ -1,8 +1,8 @@
-const ts = require('typescript');
-const path = require('path');
-const crypto = require('crypto');
+const ts = require("typescript");
+const path = require("path");
+const crypto = require("crypto");
 
-const {LRU} = require('./lru');
+const { LRU } = require("./lru");
 
 const srcCache = new LRU(1500);
 
@@ -19,7 +19,6 @@ const srcCache = new LRU(1500);
  * instance.
  */
 class CompilerHost {
-
   constructor(options, resolver) {
     this._delegate = ts.createCompilerHost(options);
     this._resolver = resolver;
@@ -30,24 +29,25 @@ class CompilerHost {
     // they're on the root of the FS. Pass the original to `createSourceFile`
     // for consistent error reporting
     let fsFile = name;
-    if(fsFile[0] !== '/') {
-      fsFile = '/' + fsFile;
+    if (fsFile[0] !== "/") {
+      fsFile = "/" + fsFile;
     }
 
     ts.performance.mark("hashStart");
     const source = this._resolver.readFile(fsFile);
-    const hash = crypto.createHash('sha1')
+    const hash = crypto
+      .createHash("sha1")
       .update(name)
       .update(source)
-      .update(langVersion ? langVersion.toString() : '')
-      .digest('hex');
+      .update(langVersion ? langVersion.toString() : "")
+      .digest("hex");
     ts.performance.measure("Hash", "hashStart");
 
-    if(srcCache.hasKey(hash)) {
+    if (srcCache.hasKey(hash)) {
       return srcCache.get(hash);
     }
 
-    if(source !== undefined) {
+    if (source !== undefined) {
       const sf = ts.createSourceFile(name, source, langVersion);
       srcCache.set(hash, sf);
       return sf;
@@ -55,12 +55,16 @@ class CompilerHost {
   }
 
   getDefaultLibFileName(options) {
-    return path.join(this.getDefaultLibLocation(), 'lib.d.ts');
+    return path.join(this.getDefaultLibLocation(), "lib.d.ts");
   }
 
   getDefaultLibLocation() {
-    return path.join(this.getCurrentDirectory(), 'node_modules', 'typescript',
-      'lib');
+    return path.join(
+      this.getCurrentDirectory(),
+      "node_modules",
+      "typescript",
+      "lib"
+    );
   }
 
   writeFile(name, data, writeBOM, onError, sourceFiles) {
@@ -100,7 +104,6 @@ class CompilerHost {
   }
 }
 
-
 /**
  * Use a `CompilerHost` to require a module. This is needed in the cases where
  * compile-time dependencies are needed at run-time. A concrete example is
@@ -120,23 +123,24 @@ class CompilerHost {
  */
 function hostRequire(host, options, module) {
   ts.performance.mark("hostRequireStart");
-  const fileName = ts.resolveJSModule(module, '/', host)
+  const fileName = ts.resolveJSModule(module, "/", host);
   const src = host.readFile(fileName);
 
-  const requireFun = (name) => {
+  const requireFun = name => {
     try {
       return require(name);
-    } catch(err) {
+    } catch (err) {
       // On to the next thing
     }
     return hostRequire(host, options, name);
-  }
+  };
   const capturedExports = {};
 
-  new Function('require', 'exports', '__dirname', src)(
+  new Function("require", "exports", "__dirname", src)(
     requireFun,
     capturedExports,
-    path.dirname(fileName));
+    path.dirname(fileName)
+  );
   ts.performance.measure("HostRequire", "hostRequireStart");
 
   return capturedExports;
@@ -144,5 +148,5 @@ function hostRequire(host, options, module) {
 
 module.exports = {
   CompilerHost,
-  hostRequire,
+  hostRequire
 };

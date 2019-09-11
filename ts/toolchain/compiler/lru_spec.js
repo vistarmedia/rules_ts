@@ -1,14 +1,11 @@
-const {expect} = require('chai');
+const { expect } = require("chai");
 
-const {LRU} = require('./lru.js');
-
+const { LRU } = require("./lru.js");
 
 describe("LRU", () => {
-
   let lru;
 
   describe("basically", () => {
-
     beforeEach(() => {
       lru = new LRU(10);
     });
@@ -40,13 +37,11 @@ describe("LRU", () => {
   });
 
   describe("with a size of 3", () => {
-
     beforeEach(() => {
       lru = new LRU(3);
     });
 
     describe("when empty", () => {
-
       it("should retain 3 values", () => {
         lru.set("a", 1);
         lru.set("b", 2);
@@ -56,11 +51,9 @@ describe("LRU", () => {
         expect(lru.get("b")).to.equal(2);
         expect(lru.get("c")).to.equal(3);
       });
-
     });
 
     describe("when full", () => {
-
       beforeEach(() => {
         lru = new LRU(3);
         lru.set("a", 1);
@@ -68,23 +61,21 @@ describe("LRU", () => {
         lru.set("c", 3);
       });
 
-      it('should have 3 keys in LRU order', () => {
+      it("should have 3 keys in LRU order", () => {
         expect(lru._keys).to.deep.equal(["c", "b", "a"]);
       });
 
-      it('should promote a key when read', () => {
+      it("should promote a key when read", () => {
         expect(lru.get("b")).to.equal(2);
         expect(lru._keys).to.deep.equal(["b", "c", "a"]);
       });
 
-      it('should expire a key', () => {
+      it("should expire a key", () => {
         lru.set("d", 4);
         expect(lru._keys).to.deep.equal(["d", "c", "b"]);
         expect(lru.hasKey("a")).to.be.false;
         expect(lru.get("a")).to.be.undefined;
       });
     });
-
   });
-
 });
