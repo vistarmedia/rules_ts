@@ -331,7 +331,7 @@ _tsc_flags = {
     "skip_lib_check": {
         "type": "flag",
         "attr": attr.bool(),
-        "flag": "--skipLiCheck",
+        "flag": "--skipLibCheck",
     },
 
     # Enable all strict type checking options.  Enabling --strict enables
