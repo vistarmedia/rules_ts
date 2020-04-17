@@ -88,6 +88,7 @@ def ts_binary(name, data = [], **kwargs):
         src = src_name,
         deps = deps,
         data = data,
+        visibility = kwargs.get("visibility"),
     )
 
 def ts_test(name, **kwargs):
