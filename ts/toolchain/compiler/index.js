@@ -114,7 +114,7 @@ async function compile(opts, inputs, perfMaxMs = 0) {
   }
 
   const checksums = inputs.reduce((acc, input) => {
-    acc[input.path] = input.digest.toHex();
+    acc[input.path] = input.digest.toString();
     return acc;
   }, {});
 
