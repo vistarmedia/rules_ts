@@ -82,6 +82,13 @@ _tsc_flags = {
         "flag": "--emitDecoratorMetadata",
     },
 
+    # Allow ES Module imports
+    "es_module_interop": {
+        "type": "flag",
+        "attr": attr.bool(),
+        "flag": "--esModuleInterop",
+    },
+
     # Enables experimental support for ES7 decorators.
     "experimental_decorators": {
         "type": "flag",

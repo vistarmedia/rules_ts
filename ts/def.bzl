@@ -78,7 +78,7 @@ def ts_library(name, package = None, data = [], **kwargs):
             testonly = kwargs.get("testonly", False),
         )
 
-def ts_binary(name, data = [], **kwargs):
+def ts_binary(name, data = [], args = [], **kwargs):
     src_name = name + ".src"
     deps = kwargs.get("deps", []) + ["@tslib//:lib"]
     ts_src(name = src_name, **kwargs)
@@ -88,6 +88,7 @@ def ts_binary(name, data = [], **kwargs):
         src = src_name,
         deps = deps,
         data = data,
+        args = args,
         visibility = kwargs.get("visibility"),
     )
 
