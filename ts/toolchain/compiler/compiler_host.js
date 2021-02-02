@@ -41,7 +41,8 @@ class CompilerHost {
       .update(source)
       .update(langVersion ? langVersion.toString() : "")
       .digest("hex");
-    ts.performance.measure("Hash", "hashStart");
+    ts.performance.mark("hashEnd");
+    ts.performance.measure("Hash", "hashStart", "hashEnd");
 
     if (srcCache.hasKey(hash)) {
       return srcCache.get(hash);
@@ -141,7 +142,8 @@ function hostRequire(host, options, module) {
     capturedExports,
     path.dirname(fileName)
   );
-  ts.performance.measure("HostRequire", "hostRequireStart");
+  ts.performance.mark("hostRequireEnd");
+  ts.performance.measure("HostRequire", "hostRequireStart", "hostRequireEnd");
 
   return capturedExports;
 }

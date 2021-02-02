@@ -366,7 +366,8 @@ async function newResolver(jsars, files, checksums, root) {
   const workspace = new CompositeResolver(libResolver, srcResolver);
   workspace.jsarByFile = jsarByFile;
 
-  ts.performance.measure("NewResolver", "newResolverStart");
+  ts.performance.mark("newResolverEnd");
+  ts.performance.measure("NewResolver", "newResolverStart", "newResolverEnd");
   return [workspace, srcFiles.concat(srcJarFiles)];
 }
 
