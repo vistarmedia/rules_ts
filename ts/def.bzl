@@ -21,10 +21,10 @@ load(
 
 tsc_config = _tsc_config
 
-def ts_repositories(version = "4.1.3"):
+def ts_repositories(version = "4.2.2"):
     ts_versions = {
-        "3.7.2": "bd068e5c31005b7128123efb0e4d78002e0de958a4616f17026c3a45b508e714",
         "4.1.3": "213b2677e1f29700601c29e4a603eabe63f87f14fa02fd3633bf141aaa4e0e7e",
+        "4.2.2": "2bddffdbc744f75f6b57e0f7225bc5a945b228b627b8194a993d0993e2e0767f",
     }
     ts_sha = ts_versions.get(version)
     if not ts_sha:
@@ -38,8 +38,8 @@ def ts_repositories(version = "4.1.3"):
 
     npm_install(
         name = "tslib",
-        version = "1.10.0",
-        sha256 = "e9e0583cf819274872ac1763d2cb40570950b6bc15f5bd4208c3facf026b99d5",
+        version = "2.1.0",
+        sha256 = "3c741a8155d94d86074f97253561e29f3d4cfed30681564a3cb4b93d68b6efe2",
     )
 
     npm_install(
