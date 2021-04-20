@@ -119,8 +119,6 @@ class CompilerHost {
  * The `require`'ing module is not considered here, so relative imports may
  * prove problematic. Fixing that would be a matter is factoring out calls to
  * `process.cwd()` below to the `path.dirname` of the requiring file.
- *
- * Only `exports` is exposed. Code using `module.exports` will likely crash.
  */
 function hostRequire(host, options, module) {
   ts.performance.mark("hostRequireStart");
@@ -136,10 +134,12 @@ function hostRequire(host, options, module) {
     return hostRequire(host, options, name);
   };
   const capturedExports = {};
+  const mod = { exports: capturedExports };
 
-  new Function("require", "exports", "__dirname", src)(
+  new Function("require", "exports", "module", "__dirname", src)(
     requireFun,
     capturedExports,
+    mod,
     path.dirname(fileName)
   );
   ts.performance.mark("hostRequireEnd");

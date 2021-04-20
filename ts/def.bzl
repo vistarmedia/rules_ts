@@ -38,8 +38,8 @@ def ts_repositories(version = "4.2.2"):
 
     npm_install(
         name = "tslib",
-        version = "2.1.0",
-        sha256 = "3c741a8155d94d86074f97253561e29f3d4cfed30681564a3cb4b93d68b6efe2",
+        version = "2.2.0",
+        sha256 = "1f00ed681b1394a8093a196d558d0513ea951f6a31c864719ccff906594cc5e5",
     )
 
     npm_install(
