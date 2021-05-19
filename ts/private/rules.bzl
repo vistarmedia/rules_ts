@@ -177,7 +177,8 @@ attrs = dict(tsc_attrs.items() + {
               "or a packaged jsar. The default is source, as its far easier to " +
               "debug despite a slight increase in compilation time. Note that " +
               "in situations where the output files of a ts_src compilation " +
-              "cannot be known at analyze time, this can be a hand escape hatch",
+              "cannot be known at analyze time, this can be a handy escape " +
+              "hatch",
     ),
     "package": attr.string(
         doc = "Optionally rewrite the package the source gets compiled to. See " +
