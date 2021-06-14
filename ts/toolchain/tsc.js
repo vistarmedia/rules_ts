@@ -6,7 +6,7 @@ work(async (arg, inputs) => {
   // Log a warning if compilation phases take more than 13 seconds cumulative
   const perfMaxMs = 13000;
   return await compile(JSON.parse(arg), inputs, perfMaxMs);
-}).catch(err => {
+}).catch((err) => {
   console.error(err.stack);
   process.exit(1);
 });

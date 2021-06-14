@@ -32,5 +32,5 @@ async function newJsarWriter(fileName, pkg, options, resolver) {
 
 module.exports = {
   JsarWriter,
-  newJsarWriter
+  newJsarWriter,
 };

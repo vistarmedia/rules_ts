@@ -59,5 +59,5 @@ class LRU {
 }
 
 module.exports = {
-  LRU
+  LRU,
 };

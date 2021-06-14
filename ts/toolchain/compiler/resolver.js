@@ -270,7 +270,7 @@ class CompositeResolver {
 const libCache = new LRU(500);
 async function libResolverFromJsars(names, checksums) {
   const jsarByFile = {};
-  const bundles = names.map(async name => {
+  const bundles = names.map(async (name) => {
     let bundle;
     const checksum = checksums[name];
     if (checksum !== undefined && libCache.hasKey(checksum)) {
@@ -302,7 +302,7 @@ async function libResolverFromFiles(names, root) {
   let fileMap = {};
   let files = [];
   await Promise.all(
-    names.map(async name => {
+    names.map(async (name) => {
       const fname = name.startsWith(root) ? name.slice(root.length) : name;
 
       files.push(fname);
@@ -373,5 +373,5 @@ async function newResolver(jsars, files, checksums, root) {
 
 module.exports = {
   __test__: { LibResolver, StripPrefixResolver },
-  newResolver
+  newResolver,
 };

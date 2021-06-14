@@ -16,8 +16,9 @@ function logError(error) {
   if (file) {
     const { line, character } = file.getLineAndCharacterOfPosition(start);
     const message = ts.flattenDiagnosticMessageText(messageText, "\n");
-    return `[TS${code}] ${file.fileName} ({$line+1}:${character +
-      1}) ${message}`;
+    return `[TS${code}] ${file.fileName} ({$line+1}:${
+      character + 1
+    }) ${message}`;
   } else {
     return ts.flattenDiagnosticMessageText(
       `[TS${code}] ${messageText}` + error.messageText,
@@ -124,22 +125,14 @@ async function compile(opts, inputs, perfMaxMs = 0) {
   }, {});
 
   const argFileContent = await readFile(opts.args_file);
-  const cmd = ts.parseCommandLine(
-    argFileContent
-      .toString()
-      .trim()
-      .split("\n")
-  );
+  const cmd = ts.parseCommandLine(argFileContent.toString().trim().split("\n"));
 
   if (cmd.errors.length > 0) {
     return exitErrors(cmd.errors);
   }
 
   const libFileContent = await readFile(opts.lib_file);
-  const libs = libFileContent
-    .toString()
-    .trim()
-    .split("\n");
+  const libs = libFileContent.toString().trim().split("\n");
   const [resolver, srcFiles] = await newResolver(
     libs,
     cmd.fileNames,
@@ -163,18 +156,18 @@ async function compile(opts, inputs, perfMaxMs = 0) {
 
   const program = ts.createProgram(srcFiles, cmd.options, compiler);
 
-  const beforeTransforms = opts.transformers.before.map(t =>
+  const beforeTransforms = opts.transformers.before.map((t) =>
     hostRequire(compiler, cmd.options, t).default(program)
   );
 
-  const afterTransforms = opts.transformers.after.map(t =>
+  const afterTransforms = opts.transformers.after.map((t) =>
     hostRequire(compiler, cmd.options, t).default(program)
   );
 
   const strictDepsPlugin = strictDeps(program);
   const transformers = {
     before: beforeTransforms.concat([strictDepsPlugin]),
-    after: afterTransforms
+    after: afterTransforms,
   };
 
   const { emitSkipped, diagnostics } = program.emit(
@@ -208,5 +201,5 @@ async function compile(opts, inputs, perfMaxMs = 0) {
 }
 
 module.exports = {
-  compile
+  compile,
 };

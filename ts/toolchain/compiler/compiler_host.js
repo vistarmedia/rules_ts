@@ -125,7 +125,7 @@ function hostRequire(host, options, module) {
   const fileName = ts.resolveJSModule(module, "/", host);
   const src = host.readFile(fileName);
 
-  const requireFun = name => {
+  const requireFun = (name) => {
     try {
       return require(name);
     } catch (err) {
@@ -150,5 +150,5 @@ function hostRequire(host, options, module) {
 
 module.exports = {
   CompilerHost,
-  hostRequire
+  hostRequire,
 };

@@ -11,7 +11,7 @@ function strictDeps(program) {
     imports[src].push(impt);
   };
 
-  const plugin = context => file =>
+  const plugin = (context) => (file) =>
     visitFile(file, program, context, noteImport);
   plugin.imports = () => imports;
 
@@ -68,5 +68,5 @@ function visitFile(file, program, context, noteImport) {
 }
 
 module.exports = {
-  strictDeps
+  strictDeps,
 };

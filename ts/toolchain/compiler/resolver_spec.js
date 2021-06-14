@@ -14,7 +14,7 @@ describe("LibResolver", () => {
       "/nested/lib_one/a.ts": undefined,
       "/nested/lib_two/a.ts": undefined,
       "/nested/lib_two/b.ts": undefined,
-      "/oops/super/nested/with/only/one/file.ts": undefined
+      "/oops/super/nested/with/only/one/file.ts": undefined,
     });
   });
 
@@ -52,7 +52,7 @@ describe("LibResolver", () => {
         "lib_one",
         "lib_two",
         "nested",
-        "oops"
+        "oops",
       ]);
 
       expect(resolver.getDirectories("/lib_one")).to.be.empty;
@@ -60,7 +60,7 @@ describe("LibResolver", () => {
 
       expect(resolver.getDirectories("/nested")).to.have.members([
         "lib_one",
-        "lib_two"
+        "lib_two",
       ]);
 
       expect(resolver.getDirectories("/oops")).to.have.members(["super"]);
@@ -86,7 +86,7 @@ describe("StripPrefixResolver", () => {
       "/nested/lib_one/a.ts": undefined,
       "/nested/lib_two/a.ts": undefined,
       "/nested/lib_two/b.ts": undefined,
-      "/oops/super/nested/with/only/one/file.ts": undefined
+      "/oops/super/nested/with/only/one/file.ts": undefined,
     });
     resolver = new StripPrefixResolver("/etc/node_modules", root);
   });
@@ -125,7 +125,7 @@ describe("StripPrefixResolver", () => {
         "lib_one",
         "lib_two",
         "nested",
-        "oops"
+        "oops",
       ]);
 
       expect(
