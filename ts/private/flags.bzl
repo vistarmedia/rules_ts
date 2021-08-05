@@ -333,6 +333,11 @@ _tsc_flags = {
         "attr": attr.bool(),
         "flag": "--removeComments",
     },
+    "resolve_json_module": {
+        "type": "flag",
+        "attr": attr.bool(),
+        "flag": "--resolveJsonModule",
+    },
 
     # Skip type checking of all declaration files (*.d.ts).
     "skip_lib_check": {
