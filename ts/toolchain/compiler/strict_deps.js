@@ -1,4 +1,5 @@
 const ts = require("typescript");
+const util = require("util");
 
 function strictDeps(program) {
   const imports = {};
@@ -25,13 +26,11 @@ function visitFile(file, program, context, noteImport) {
   let fallbackImportMap = {};
   const { resolvedModules } = file;
   if (resolvedModules !== undefined) {
-    for (const impt of resolvedModules.keys()) {
-      const resolution = resolvedModules.get(impt);
-      if (!resolution) {
-        continue;
+    resolvedModules.forEach((resolution, impt) => {
+      if (resolution) {
+        fallbackImportMap[impt] = resolution.resolvedFileName;
       }
-      fallbackImportMap[impt] = resolution.resolvedFileName;
-    }
+    });
   }
 
   const tc = program.getTypeChecker();
