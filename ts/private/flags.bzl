@@ -163,6 +163,7 @@ _tsc_flags = {
         "values": sets.make([
             "es5",
             "es6",
+            "es2018",
             "es2015",
             "es7",
             "es2016",

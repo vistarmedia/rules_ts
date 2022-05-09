@@ -35,6 +35,10 @@ class CompilerHost {
 
     ts.performance.mark("hashStart");
     const source = this._resolver.readFile(fsFile);
+    // This guards against empty source files in dependencies.
+    if (source === undefined) {
+      return;
+    }
     const hash = crypto
       .createHash("sha1")
       .update(name)
@@ -48,11 +52,9 @@ class CompilerHost {
       return srcCache.get(hash);
     }
 
-    if (source !== undefined) {
-      const sf = ts.createSourceFile(name, source, langVersion);
-      srcCache.set(hash, sf);
-      return sf;
-    }
+    const sf = ts.createSourceFile(name, source, langVersion);
+    srcCache.set(hash, sf);
+    return sf;
   }
 
   getDefaultLibFileName(options) {
