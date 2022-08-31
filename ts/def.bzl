@@ -100,6 +100,7 @@ def ts_test(name, **kwargs):
         "args",
         "data",
         "flaky",
+        "has_dom",
         "local",
         "reporter",
         "shared_count",
