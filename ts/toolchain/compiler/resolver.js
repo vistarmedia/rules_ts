@@ -54,7 +54,6 @@ class Directories {
     const parentDir = path.dirname(dirName);
 
     if (parentDir in this._dirs) {
-      const existing = this._dirs[parentDir];
       if (this._dirs[parentDir].indexOf(baseName) < 0) {
         this._dirs[parentDir].push(baseName);
       }
@@ -329,7 +328,7 @@ function libResolverFromSrcJars(srcJars) {
   }
 
   const resolver = new LibResolver(fileMap);
-  return [new LibResolver(fileMap), files];
+  return [resolver, files];
 }
 
 /**

@@ -22,6 +22,7 @@ class CompilerHost {
   constructor(options, resolver) {
     this._delegate = ts.createCompilerHost(options);
     this._resolver = resolver;
+    this._trace = "";
   }
 
   getSourceFile(name, langVersion, onError, shouldCreateNewSourceFile) {
@@ -104,6 +105,14 @@ class CompilerHost {
 
   getDirectories(dirName) {
     return this._resolver.getDirectories(dirName);
+  }
+
+  trace(s) {
+    this._trace = this._trace + "\n" + s;
+  }
+
+  getTrace() {
+    return this._trace;
   }
 }
 

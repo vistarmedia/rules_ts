@@ -16,7 +16,7 @@ function logError(error) {
   if (file) {
     const { line, character } = file.getLineAndCharacterOfPosition(start);
     const message = ts.flattenDiagnosticMessageText(messageText, "\n");
-    return `[TS${code}] ${file.fileName} ({$line+1}:${
+    return `[TS${code}] ${file.fileName} (${line + 1}:${
       character + 1
     }) ${message}`;
   } else {
@@ -91,7 +91,7 @@ function checkStrictImports(label, imports, jsarByFile, depByJsar, ignored) {
 
 // Generate a performance log if the total time is greater than the given
 // `perfMaxMs`. Otherwise, return an empty string
-function perfLog(label, perfMaxMs) {
+function perfLog(label, perfMaxMs, trace) {
   let totalTimeMs = 0;
   let output = "";
 
@@ -104,7 +104,7 @@ function perfLog(label, perfMaxMs) {
   ts.performance.disable();
 
   if (totalTimeMs > perfMaxMs) {
-    return output;
+    return output + "\n" + trace;
   }
   return "";
 }
@@ -196,8 +196,13 @@ async function compile(opts, inputs, perfMaxMs = 0) {
     }
   }
 
-  const output = perfMaxMs ? perfLog(opts.label, perfMaxMs) : "";
-  return { exitCode: 0, output: output };
+  const output = perfMaxMs
+    ? perfLog(opts.label, perfMaxMs, compiler.getTrace())
+    : "";
+  return {
+    exitCode: 0,
+    output: output,
+  };
 }
 
 module.exports = {
