@@ -105,6 +105,7 @@ def ts_test(name, **kwargs):
         "reporter",
         "shared_count",
         "size",
+        "source_map_support",
         "throw_warn",
         "visibility",
     ]
